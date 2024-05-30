@@ -19,7 +19,7 @@ import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MyPage() {
+fun MyPageScreen() {
     val navController = rememberNavController()
     Scaffold(
         topBar = {
@@ -42,7 +42,7 @@ fun MyPage() {
         }
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
-            NagivationHost(navController = navController)
+            NavigationHost(navController = navController)
         }
     }
 }

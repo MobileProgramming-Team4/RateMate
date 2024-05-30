@@ -21,7 +21,7 @@ sealed class NavRoutes (val route: String) {
 }
 
 @Composable
-fun NagivationHost(navController: NavHostController) {
+fun NavigationHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = NavRoutes.Quest.route

@@ -13,7 +13,7 @@ data class SurveyResult(
     val like: Int,
     val date: Date = Date(),
     val comments: List<Comment> = mutableListOf(),
-    var SurveyResult_User_List: MutableList<SurveyResult_User>
+    var surveyResultUserList: MutableList<SurveyResultUser>
 
 )
 
@@ -25,11 +25,11 @@ data class Comment(
     var like: Int,
     var dislike: Int,
     val date: Date = Date(),
-    var Comment_User_List: MutableList<Comment_User>
+    var commentUserList: MutableList<CommentUser>
 )
 
 
-data class Comment_User(
+data class CommentUser(
     val user: String,
     var isUsersComment: Boolean = false,
     var isLiked: Boolean = false,
@@ -37,7 +37,7 @@ data class Comment_User(
 )
 
 
-data class SurveyResult_User(
+data class SurveyResultUser(
     val user: String,
     var isLiked: Boolean = false
 )

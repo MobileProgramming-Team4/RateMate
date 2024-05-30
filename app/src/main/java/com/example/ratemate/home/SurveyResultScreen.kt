@@ -61,39 +61,43 @@ import java.util.Calendar
 @Composable
 fun SurveyResultScreen(navController: NavHostController) {
 
-    val SurveyResult = getExampleSurveyResult()
+    val surveyResult = getExampleSurveyResult()
     val user = getExampleUser()
 
-    val title = SurveyResult.title
-    val writer = SurveyResult.writer
-    val content = SurveyResult.content
+    val title = surveyResult.title
+    val writer = surveyResult.writer
+    val content = surveyResult.content
     val userImg = user.userImg
     val userName = user.userName
-    var commentList by rememberSaveable { mutableStateOf(SurveyResult.comments) }
-    var like by remember { mutableIntStateOf(SurveyResult.like) }
-    var numberOfComment by remember { mutableIntStateOf(SurveyResult.comments.size) }
+    var commentList by rememberSaveable { mutableStateOf(surveyResult.comments) }
+    var like by remember { mutableIntStateOf(surveyResult.like) }
+    var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
     var sortComment by remember { mutableStateOf("인기순") }
     val context = LocalContext.current
 
 
     //해당 유저가 이 결과화면에 들어온적이 있는지 확인 후 없으면 좋아요를 눌렀는지 등 과 같은 정보를 저장할 리스트 생성
-    if (SurveyResult.SurveyResult_User_List.find { it.user == userName } == null) {
-        SurveyResult.SurveyResult_User_List.add(SurveyResult_User(user = userName))
+    if (surveyResult.surveyResultUserList.find { it.user == userName } == null) {
+        surveyResult.surveyResultUserList.add(SurveyResultUser(user = userName))
     }
 
     //해당 유저가 좋아요를 눌렀는지 확인
-    var isLiked by rememberSaveable { mutableStateOf(SurveyResult.SurveyResult_User_List.find { it.user == userName }?.isLiked ?: false) }
+    var isLiked by rememberSaveable {
+        mutableStateOf(
+            surveyResult.surveyResultUserList.find { it.user == userName }?.isLiked ?: false
+        )
+    }
 
     //좋아요를 눌렀을때 실행될 함수
     val clickLikes = {
         if (isLiked) {
             like -= 1
             isLiked = false
-            SurveyResult.SurveyResult_User_List.find { it.user == userName }?.isLiked = false
+            surveyResult.surveyResultUserList.find { it.user == userName }?.isLiked = false
         } else {
             like += 1
             isLiked = true
-            SurveyResult.SurveyResult_User_List.find { it.user == userName }?.isLiked = true
+            surveyResult.surveyResultUserList.find { it.user == userName }?.isLiked = true
         }
     }
 
@@ -110,7 +114,7 @@ fun SurveyResultScreen(navController: NavHostController) {
     }
 
     //댓글 추가 함수
-    fun addComment(comment : String){
+    fun addComment(comment: String) {
         val calendar = Calendar.getInstance()
         val newComment = Comment(
             img = userImg,
@@ -119,19 +123,22 @@ fun SurveyResultScreen(navController: NavHostController) {
             like = 0,
             dislike = 0,
             date = calendar.time,
-            Comment_User_List = mutableListOf(Comment_User(user = userName, isUsersComment = true))
+            commentUserList = mutableListOf(CommentUser(user = userName, isUsersComment = true))
         )
         commentList = commentList + newComment
         numberOfComment = commentList.size
 
-        if (sortComment == "인기순") { clickSortByLikes() }
-        else { clickSortByDate() }
+        if (sortComment == "인기순") {
+            clickSortByLikes()
+        } else {
+            clickSortByDate()
+        }
 
     }
 
 
     //댓글 입력 버튼 클릭시 실행될 함수
-    val onClickSend = { comment : String ->
+    val onClickSend = { comment: String ->
         if (comment == "") {
             Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
         } else {
@@ -141,12 +148,10 @@ fun SurveyResultScreen(navController: NavHostController) {
     }
 
 
-
-
     //전체화면 Column
-    Column (
+    Column(
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
 
         //상단
 
@@ -161,12 +166,23 @@ fun SurveyResultScreen(navController: NavHostController) {
 
         //좋아요, 댓글 수
         val modifier3 = Modifier.weight(1f)
-        ShowCounts(isLiked = isLiked, like = like, numberOfComment = numberOfComment, modifier = modifier3, clickLikes = clickLikes)
+        ShowCounts(
+            isLiked = isLiked,
+            like = like,
+            numberOfComment = numberOfComment,
+            modifier = modifier3,
+            clickLikes = clickLikes
+        )
 
         //댓글 정렬 방법 버튼
         Divider(thickness = 3.dp)
         val modifier4 = Modifier.weight(0.8f)
-        ShowSortComment(sortComment = sortComment, modifier = modifier4, clickSortByLikes = clickSortByLikes, clickSortByDate = clickSortByDate)
+        ShowSortComment(
+            sortComment = sortComment,
+            modifier = modifier4,
+            clickSortByLikes = clickSortByLikes,
+            clickSortByDate = clickSortByDate
+        )
 
         //댓글 리스트
         Divider()
@@ -195,7 +211,7 @@ fun getExampleSurveyResult(): SurveyResult {
         like = 100,
         dislike = 3,
         date = calendar1.time,
-        Comment_User_List = mutableListOf(Comment_User(user = "작성자1", isUsersComment = true))
+        commentUserList = mutableListOf(CommentUser(user = "작성자1", isUsersComment = true))
     )
 
     val calendar2 = Calendar.getInstance()
@@ -207,7 +223,7 @@ fun getExampleSurveyResult(): SurveyResult {
         like = 1,
         dislike = 15,
         date = calendar2.time,
-        Comment_User_List = mutableListOf(Comment_User(user = "작성자2", isUsersComment = true))
+        commentUserList = mutableListOf(CommentUser(user = "작성자2", isUsersComment = true))
     )
 
     val list_of_comments = mutableListOf<Comment>(commentEX1, commentEX2)
@@ -218,7 +234,7 @@ fun getExampleSurveyResult(): SurveyResult {
         content = "내용",
         like = 10,
         comments = list_of_comments,
-        SurveyResult_User_List = mutableListOf()
+        surveyResultUserList = mutableListOf()
 
     )
 
@@ -226,17 +242,16 @@ fun getExampleSurveyResult(): SurveyResult {
 }
 
 @Composable
-fun getExampleUser() : User{
-    val user = User(
+fun getExampleUser(): User {
+    return User(
         userImg = painterResource(id = R.drawable.logo_only),
         userName = FirebaseAuth.getInstance().currentUser?.email ?: "Guest"
     )
-    return user
 }
 
 @Composable
-fun ShowTitle(title : String, writer : String, modifier : Modifier){
-    Column(modifier = modifier){
+fun ShowTitle(title: String, writer: String, modifier: Modifier) {
+    Column(modifier = modifier) {
 
         //제목
         Text(
@@ -258,14 +273,15 @@ fun ShowTitle(title : String, writer : String, modifier : Modifier){
 }
 
 @Composable
-fun ShowMainContent(content : String, modifier : Modifier){
-    Box(modifier = modifier){
+fun ShowMainContent(content: String, modifier: Modifier) {
+    Box(modifier = modifier) {
 
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.LightGray.copy(alpha = 0.5f))
-            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
-        ){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.LightGray.copy(alpha = 0.5f))
+                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
+        ) {
             Text(
                 text = content,
                 fontSize = 15.sp,
@@ -274,22 +290,21 @@ fun ShowMainContent(content : String, modifier : Modifier){
         }
 
 
-
     }
 }
 
 @Composable
 fun ShowCounts(
-    isLiked : Boolean,
-    like : Int,
-    numberOfComment : Int,
-    modifier : Modifier,
-    clickLikes : () -> Unit
-){
+    isLiked: Boolean,
+    like: Int,
+    numberOfComment: Int,
+    modifier: Modifier,
+    clickLikes: () -> Unit
+) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
 
         //좋아요 버튼
         Icon(
@@ -315,16 +330,20 @@ fun ShowCounts(
         Text(text = "$numberOfComment comments")
 
 
-
     }
 }
 
 @Composable
-fun ShowSortComment(sortComment : String ,modifier : Modifier, clickSortByLikes: () -> Unit, clickSortByDate: () -> Unit){
+fun ShowSortComment(
+    sortComment: String,
+    modifier: Modifier,
+    clickSortByLikes: () -> Unit,
+    clickSortByDate: () -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-    ){
+    ) {
 
         //인기순
         Button(
@@ -360,39 +379,45 @@ fun ShowSortComment(sortComment : String ,modifier : Modifier, clickSortByLikes:
 }
 
 @Composable
-fun ShowComments(username : String, comments: List<Comment> ,modifier: Modifier){
+fun ShowComments(username: String, comments: List<Comment>, modifier: Modifier) {
     LazyColumn(
         modifier = modifier
-    ){
-        items(comments){ comment ->
+    ) {
+        items(comments) { comment ->
 
             LaunchedEffect(Unit) {
-                if (comment.Comment_User_List.find { it.user == username } == null) {
-                    comment.Comment_User_List.add(Comment_User(user = username))
+                if (comment.commentUserList.find { it.user == username } == null) {
+                    comment.commentUserList.add(CommentUser(user = username))
                 }
             }
 
             var like by rememberSaveable { mutableIntStateOf(comment.like) }
             var dislike by rememberSaveable { mutableIntStateOf(comment.dislike) }
             var isLiked by rememberSaveable {
-                mutableStateOf(comment.Comment_User_List.find { it.user == username }?.isLiked ?: false)
+                mutableStateOf(
+                    comment.commentUserList.find { it.user == username }?.isLiked ?: false
+                )
             }
             var isDisliked by rememberSaveable {
-                mutableStateOf( comment.Comment_User_List.find { it.user == username }?.isDisliked ?: false)
+                mutableStateOf(
+                    comment.commentUserList.find { it.user == username }?.isDisliked ?: false
+                )
             }
 
             LaunchedEffect(comments) {
                 like = comment.like
                 dislike = comment.dislike
-                isLiked = comment.Comment_User_List.find { it.user == username }?.isLiked ?: false
-                isDisliked = comment.Comment_User_List.find { it.user == username }?.isDisliked ?: false
+                isLiked = comment.commentUserList.find { it.user == username }?.isLiked ?: false
+                isDisliked =
+                    comment.commentUserList.find { it.user == username }?.isDisliked ?: false
             }
 
             LaunchedEffect(key1 = isLiked, key2 = isDisliked) {
                 comment.like = like
                 comment.dislike = dislike
-                comment.Comment_User_List.find { it.user == username }?.isLiked = isLiked == true
-                comment.Comment_User_List.find { it.user == username }?.isDisliked = isDisliked == true
+                comment.commentUserList.find { it.user == username }?.isLiked = isLiked == true
+                comment.commentUserList.find { it.user == username }?.isDisliked =
+                    isDisliked == true
             }
 
             //좋아요, 싫어요 버튼 클릭시 실행될 함수
@@ -445,13 +470,13 @@ fun ShowComments(username : String, comments: List<Comment> ,modifier: Modifier)
 @Composable
 fun ShowComment(
     comment: Comment,
-    like : Int = comment.like,
-    dislike : Int = comment.dislike,
-    isLiked : Boolean,
-    isDisliked : Boolean,
-    clickLike : () -> Unit,
+    like: Int = comment.like,
+    dislike: Int = comment.dislike,
+    isLiked: Boolean,
+    isDisliked: Boolean,
+    clickLike: () -> Unit,
     clickDislike: () -> Unit
-){
+) {
 
     Column {
         // 댓글 내용
@@ -521,15 +546,14 @@ fun ShowComment(
 }
 
 @Composable
-fun ShowCommentInput(modifier: Modifier, onClickSend : (String) -> Unit){
+fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
 
     var userComment by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     Row(
-        modifier = modifier.
-        padding(10.dp),
+        modifier = modifier.padding(10.dp),
         verticalAlignment = Alignment.CenterVertically
 
     ) {
@@ -537,7 +561,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend : (String) -> Unit){
         //댓글 입력창
         TextField(
             value = userComment,
-            onValueChange ={ userComment = it },
+            onValueChange = { userComment = it },
             label = { Text("Comment") },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
@@ -548,8 +572,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend : (String) -> Unit){
                     if (userComment != "") {
                         onClickSend(userComment)
                         userComment = ""
-                    }
-                    else{
+                    } else {
 //                        keyboardController?.hide()
                         focusManager.clearFocus()
 
@@ -571,7 +594,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend : (String) -> Unit){
                 containerColor = Color.Black
             ),
             shape = RoundedCornerShape(10.dp)
-        ){
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Send",
