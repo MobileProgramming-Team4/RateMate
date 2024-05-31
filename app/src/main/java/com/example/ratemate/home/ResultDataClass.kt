@@ -44,7 +44,9 @@ data class SurveyResultUser(
 data class User(
     val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
     val userImg: Painter,
-    val userName: String
+    val userName: String,
+    var point : Int = 0,
+    var PurchaseList : List<String> = mutableListOf()
 )
 
 data class ResultContent(
