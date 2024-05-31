@@ -1,14 +1,19 @@
 package com.example.ratemate.home
 
+import android.graphics.Paint
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -43,7 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -51,6 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -63,10 +74,11 @@ fun SurveyResultScreen(navController: NavHostController) {
 
     val surveyResult = getExampleSurveyResult()
     val user = getExampleUser()
+    val content = getExampleResultContent()
+    val userChoice = getExampleUserChoice()
 
     val title = surveyResult.title
     val writer = surveyResult.writer
-    val content = surveyResult.content
     val userImg = user.userImg
     val userName = user.userName
     var commentList by rememberSaveable { mutableStateOf(surveyResult.comments) }
@@ -149,40 +161,29 @@ fun SurveyResultScreen(navController: NavHostController) {
 
 
     //전체화면 Column
-    Column(
+    Column (
         modifier = Modifier.fillMaxSize()
-    ) {
+    ){
 
         //상단
 
 
         //제목, 작성자
-        val modifier1 = Modifier.weight(1f)
+        val modifier1 = Modifier.weight(1.2f)
         ShowTitle(title = title, writer = writer, modifier = modifier1)
 
         //내용
-        val modifier2 = Modifier.weight(3f)
-        ShowMainContent(content = content, modifier = modifier2)
+        val modifier2 = Modifier.weight(7f)
+        ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
 
         //좋아요, 댓글 수
         val modifier3 = Modifier.weight(1f)
-        ShowCounts(
-            isLiked = isLiked,
-            like = like,
-            numberOfComment = numberOfComment,
-            modifier = modifier3,
-            clickLikes = clickLikes
-        )
+        ShowCounts(isLiked = isLiked, like = like, numberOfComment = numberOfComment, modifier = modifier3, clickLikes = clickLikes)
 
         //댓글 정렬 방법 버튼
         Divider(thickness = 3.dp)
         val modifier4 = Modifier.weight(0.8f)
-        ShowSortComment(
-            sortComment = sortComment,
-            modifier = modifier4,
-            clickSortByLikes = clickSortByLikes,
-            clickSortByDate = clickSortByDate
-        )
+        ShowSortComment(sortComment = sortComment, modifier = modifier4, clickSortByLikes = clickSortByLikes, clickSortByDate = clickSortByDate)
 
         //댓글 리스트
         Divider()
@@ -190,7 +191,7 @@ fun SurveyResultScreen(navController: NavHostController) {
         ShowComments(username = userName, comments = commentList, modifier = modifier5)
 
         //댓글 입력창
-        val modifier6 = Modifier.weight(1f)
+        val modifier6 = Modifier.weight(1.5f)
         ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
 
         //바텀 네비게이션바
@@ -231,7 +232,6 @@ fun getExampleSurveyResult(): SurveyResult {
     val SurveyResult = SurveyResult(
         title = "제목",
         writer = "작성자",
-        content = "내용",
         like = 10,
         comments = list_of_comments,
         surveyResultUserList = mutableListOf()
@@ -247,6 +247,29 @@ fun getExampleUser(): User {
         userImg = painterResource(id = R.drawable.logo_only),
         userName = FirebaseAuth.getInstance().currentUser?.email ?: "Guest"
     )
+}
+
+@Composable
+fun getExampleResultContent() : List<ResultContent>{
+    val resultContent = mutableListOf<ResultContent>()
+
+    resultContent.add(ResultContent("question1", listOf("answer1", "answer2", "answer3", "answer4"), listOf(10, 20, 30, 40)))
+    resultContent.add(ResultContent("question2", listOf("answer2_1", "answer2_2", "answer2_3"), listOf(30, 10, 40)))
+    resultContent.add(ResultContent("question3", listOf("answer3_1", "answer3_2", "answer3_3", "answer3_4" , "answer3_5"), listOf(100, 20, 30, 0, 50)))
+    resultContent.add(ResultContent("question4", listOf("answer4_1", "answer4_2", "answer4_3", "answer4_4"), listOf(1, 2, 300, 2)))
+
+    return resultContent
+}
+
+fun getExampleUserChoice() : List<List<Int>>{
+    val userChoice = mutableListOf<List<Int>>()
+
+    userChoice.add(listOf(2))
+    userChoice.add(listOf(1,2))
+    userChoice.add(listOf(0,1))
+    userChoice.add(listOf(3))
+
+    return userChoice
 }
 
 @Composable
@@ -273,20 +296,148 @@ fun ShowTitle(title: String, writer: String, modifier: Modifier) {
 }
 
 @Composable
-fun ShowMainContent(content: String, modifier: Modifier) {
-    Box(modifier = modifier) {
+fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>, modifier : Modifier){
 
-        Box(
+    val contentSize = content.size
+    var currentContent by rememberSaveable { mutableIntStateOf(0) }
+
+    Box(modifier = modifier){
+        //회색 배경
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray.copy(alpha = 0.5f))
+            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
+        )
+
+        //내용
+        Column (
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.LightGray.copy(alpha = 0.5f))
-                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
+                .padding(10.dp)
+        ){
+
+            //설문 결과
+            ShowResult(result = content[currentContent], userChoice = userChoice[currentContent], modifier = Modifier.weight(8f))
+
+
+            //이전, 다음 버튼
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //이전 버튼
+                Button(
+                    onClick = {
+                        if (currentContent > 0) {
+                            currentContent -= 1
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (currentContent == 0) Color.Gray else Color.Black
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "이전")
+                }
+
+                //다음 버튼
+                Button(
+                    onClick = {
+                        if (currentContent < contentSize - 1) {
+                            currentContent += 1
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (currentContent == contentSize - 1) Color.Gray else Color.Black
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "다음")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowResult(result : ResultContent, userChoice : List<Int>, modifier: Modifier){
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ){
+
+        //질문
+        Text(
+            text = result.question,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        //설문 결과 차트
+        SelectionPercentageChart(answers = result.answer,choices = result.answerCount, userChoices = userChoice )
+
+    }
+}
+
+
+@Composable
+fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoices: List<Int>) {
+    val total = choices.sum()
+    val percentages = choices.map { it.toFloat() / total * 100 }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 차트
+        Canvas(modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)) {
+            val barWidth = size.width / (choices.size * 2)
+            percentages.forEachIndexed { index, percentage ->
+                val barHeight = size.height * (percentage / 100)
+                drawRect(
+                    color = if (index in userChoices) Color.Green else Color.Gray,
+                    topLeft = Offset(index * 2 * barWidth + barWidth / 2, size.height - barHeight),
+                    size = Size(barWidth, barHeight)
+                )
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        "${percentage.toInt()}%",
+                        index * 2 * barWidth + barWidth,
+                        size.height - barHeight - 10,
+                        Paint().apply {
+                            color = android.graphics.Color.BLACK
+                            textAlign = Paint.Align.CENTER
+                            textSize = 40f
+                        }
+                    )
+                }
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+        // 답변 리스트
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(
-                text = content,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(10.dp)
-            )
+            answers.forEach { answer ->
+                Text(
+                    text = answer,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
 
 
