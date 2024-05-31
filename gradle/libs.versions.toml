@@ -19,6 +19,7 @@ firebaseAuthKtx = "23.0.0"
 material = "1.7.0-beta01"
 googleServicesVersion = "4.4.2"
 firebaseDatabase = "21.0.0"
+runtimeLivedata = "1.6.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +47,7 @@ firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx",
 androidx-material = { group = "androidx.compose.material", name = "material", version.ref = "material" }
 gms-google-services = { group = "com.google.gms", name = "google-services", version.ref = "googleServicesVersion" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
