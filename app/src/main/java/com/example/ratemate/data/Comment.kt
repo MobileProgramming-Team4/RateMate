@@ -1,10 +1,10 @@
 package com.example.ratemate.data
 
 data class Comment(
-    val commentId: String = "",
-    val userId: String = "",
-    val text: String = "",
-    val createdDate: String = ""
+    var commentId: String = "",
+    var userId: String = "",
+    var text: String = "",
+    var createdDate: String = ""
 ) {
     constructor() : this("", "", "", "")
 }
