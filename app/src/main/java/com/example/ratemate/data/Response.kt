@@ -1,9 +1,9 @@
 package com.example.ratemate.data
 
 data class Response(
-    val userId: String = "",
-    val selectedOption: String = "",
-    val responseDate: String = ""
+    var userId: String = "",
+    var selectedOption: String = "",
+    var responseDate: String = ""
 ) {
     constructor() : this("", "", "")
 }

@@ -1,12 +1,12 @@
 package com.example.ratemate.data
 
 data class PointTransaction(
-    val transactionId: String = "",
-    val userId: String = "",
-    val amount: Int = 0,
-    val transactionType: String = "",
-    val transactionDate: String = "",
-    val itemId: String? = null
+    var transactionId: String = "",
+    var userId: String = "",
+    var amount: Int = 0,
+    var transactionType: String = "",
+    var transactionDate: String = "",
+    var itemId: String? = null
 ) {
     constructor() : this("", "", 0, "", "", null)
 }
