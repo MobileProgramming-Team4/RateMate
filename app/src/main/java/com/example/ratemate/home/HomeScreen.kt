@@ -60,6 +60,13 @@ fun HomeScreen(navController: NavHostController) {
             Text("Survey")
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+            navController.navigate("Store")
+        }) {
+            Text(text = "Store")
+        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
