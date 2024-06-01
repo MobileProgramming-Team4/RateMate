@@ -1,18 +1,17 @@
 package com.example.ratemate.survey
 
-
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.ratemate.repository.FirebaseRepository
 import com.example.ratemate.data.Survey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.example.ratemate.repository.SurveyRepository
 
 
-class SurveyModelFactory(private val repository: FirebaseRepository) : ViewModelProvider.Factory {
+class SurveyModelFactory(private val repository: SurveyRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SurveyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -21,7 +20,8 @@ class SurveyModelFactory(private val repository: FirebaseRepository) : ViewModel
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-class SurveyViewModel(private val repository: FirebaseRepository) : ViewModel() {
+
+class SurveyViewModel(private val repository: SurveyRepository) : ViewModel() {
     private val _surveys = MutableLiveData<List<Survey>?>()
     val surveys: LiveData<List<Survey>?> = _surveys
 
@@ -31,7 +31,7 @@ class SurveyViewModel(private val repository: FirebaseRepository) : ViewModel() 
 
     private fun loadSurveys() {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getSurveys { surveyList ->
+            repository.getAllSurveys().collect { surveyList ->
                 _surveys.postValue(surveyList)
             }
         }
@@ -45,7 +45,7 @@ class SurveyViewModel(private val repository: FirebaseRepository) : ViewModel() 
                 SortType.MOST_RESPONDED -> it.sortedByDescending { survey -> survey.responses }
             }
         }
-        _surveys.value = sortedList
+        _surveys.postValue(sortedList)
     }
 }
 
