@@ -8,8 +8,9 @@ data class User(
     var modifiedDate: String = "",
     var status: String = "",
     var profileImage: String = "",
-    var surveysCreated: List<String> = listOf(),
-    var surveysParticipated: List<String> = listOf()
+    var surveysCreated: List<String> = mutableListOf(),
+    var surveysParticipated: List<String> = mutableListOf(),
+    var PurchaseList : List<StoreItem> = mutableListOf()
 ) {
-    constructor() : this("", "", 0, "", "", "", "", listOf(), listOf())
+    constructor() : this("", "", 0, "", "", "", "", mutableListOf(), mutableListOf(), mutableListOf())
 }
