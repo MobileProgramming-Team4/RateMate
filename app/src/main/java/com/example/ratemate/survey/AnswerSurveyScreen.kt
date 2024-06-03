@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -89,7 +89,7 @@ fun AnswerSurveyScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(20.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
@@ -103,10 +103,12 @@ fun AnswerSurveyScreen(
             Question(questions[currentPage], answers)
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
+                    modifier = Modifier.width(168.dp),
                     onClick = { if (!isFirstPage) currentPage-- },
                     enabled = !isFirstPage,
                     colors = ButtonDefaults.buttonColors(
@@ -117,6 +119,7 @@ fun AnswerSurveyScreen(
                 }
 
                 Button(
+                    modifier = Modifier.width(168.dp),
                     onClick = { if (!isLastPage) currentPage++ },
                     enabled = !isLastPage,
                     colors = ButtonDefaults.buttonColors(
@@ -132,7 +135,8 @@ fun AnswerSurveyScreen(
                     onClick = { onSubmit(answers) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = 8.dp),
+                    colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue))
                 ) {
                     Text("설문조사 제출")
                 }
@@ -149,11 +153,11 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
     Column(modifier = Modifier.padding(vertical = 0.dp)) {
         Text(
             text = question.question,
-            style = MaterialTheme.typography.titleMedium,
+            fontFamily = NotoSansKr,
+            fontSize = 16.sp
         )
         question.answers.forEach { answer ->
             Row(
-//                modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (question.questionType == "single") {
@@ -178,7 +182,11 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
                         }
                     )
                 }
-                Text(text = answer)
+                Text(
+                    text = answer,
+                    fontFamily = NotoSansKr,
+                    fontSize = 16.sp
+                )
             }
         }
     }
