@@ -66,8 +66,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ratemate.R
+import com.example.ratemate.data.User
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
+import java.util.Date
 
 @Composable
 fun SurveyResultScreen(navController: NavHostController) {
@@ -79,8 +81,8 @@ fun SurveyResultScreen(navController: NavHostController) {
 
     val title = surveyResult.title
     val writer = surveyResult.writer
-    val userImg = user.userImg
-    val userName = user.userName
+    val userImg = user.profileImage
+    val userName = user.email
     var commentList by rememberSaveable { mutableStateOf(surveyResult.comments) }
     var like by remember { mutableIntStateOf(surveyResult.like) }
     var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
@@ -126,10 +128,11 @@ fun SurveyResultScreen(navController: NavHostController) {
     }
 
     //댓글 추가 함수
+    @Composable
     fun addComment(comment: String) {
         val calendar = Calendar.getInstance()
         val newComment = Comment(
-            img = userImg,
+            img = painterResource(id = userImg.toInt()),
             username = userName,
             commentText = comment,
             like = 0,
@@ -150,7 +153,7 @@ fun SurveyResultScreen(navController: NavHostController) {
 
 
     //댓글 입력 버튼 클릭시 실행될 함수
-    val onClickSend = { comment: String ->
+    val onClickSend = @Composable { comment: String ->
         if (comment == "") {
             Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
         } else {
@@ -243,10 +246,21 @@ fun getExampleSurveyResult(): SurveyResult {
 
 @Composable
 fun getExampleUser(): User {
-    return User(
-        userImg = painterResource(id = R.drawable.logo_only),
-        userName = FirebaseAuth.getInstance().currentUser?.email ?: "Guest"
-    )
+    val user = User()
+    val me = FirebaseAuth.getInstance().currentUser
+
+    user.userId = me?.uid ?: "null"
+    user.email = me?.email ?: "null"
+    user.points = 1000
+    user.createdDate = Date().toString()
+    user.modifiedDate = Date().toString()
+    user.status = "active"
+    user.profileImage = R.drawable.profile.toString()
+    user.surveysCreated = mutableListOf("1", "2", "3")
+    user.surveysParticipated = mutableListOf("4", "5", "6")
+    user.PurchaseList = mutableListOf()
+
+    return user
 }
 
 @Composable
@@ -697,11 +711,12 @@ fun ShowComment(
 }
 
 @Composable
-fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
+fun ShowCommentInput(modifier: Modifier, onClickSend: @Composable (String) -> Unit) {
 
     var userComment by rememberSaveable { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
+//    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    var sendComment by rememberSaveable { mutableStateOf(false) }
 
     Row(
         modifier = modifier.padding(10.dp),
@@ -721,9 +736,11 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (userComment != "") {
-                        onClickSend(userComment)
-                        userComment = ""
-                    } else {
+                        sendComment = true
+                    }
+//                        onClickSend(userComment)
+//                        userComment = ""
+                    else {
 //                        keyboardController?.hide()
                         focusManager.clearFocus()
 
@@ -738,8 +755,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
         //전송 버튼
         Button(
             onClick = {
-                onClickSend(userComment)
-                userComment = ""
+                sendComment = true
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Black
@@ -752,6 +768,12 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
             )
+        }
+
+        if (sendComment) {
+            onClickSend(userComment)
+            userComment = ""
+            sendComment = false
         }
 
     }

@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.data.Survey
-import com.example.ratemate.repository.FirebaseRepository
+import com.example.ratemate.repository.SurveyRepository
 
 
 @Composable
 fun SurveyListScreen(navController: NavController) {
-    val repository = FirebaseRepository()
+    val repository = SurveyRepository()
     val viewModel: SurveyViewModel = viewModel(factory = SurveyModelFactory(repository))
     val surveys by viewModel.surveys.observeAsState(initial = null)
     var expanded by remember { mutableStateOf(false) }

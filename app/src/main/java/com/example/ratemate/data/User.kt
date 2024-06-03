@@ -1,15 +1,16 @@
 package com.example.ratemate.data
 
 data class User(
-    val userId: String = "",
-    val email: String = "",
-    val points: Int = 0,
-    val createdDate: String = "",
-    val modifiedDate: String = "",
-    val status: String = "",
-    val profileImage: String = "",
-    val surveysCreated: List<String> = listOf(),
-    val surveysParticipated: List<String> = listOf()
+    var userId: String = "",
+    var email: String = "",
+    var points: Int = 0,
+    var createdDate: String = "",
+    var modifiedDate: String = "",
+    var status: String = "",
+    var profileImage: String = "",
+    var surveysCreated: List<String> = mutableListOf(),
+    var surveysParticipated: List<String> = mutableListOf(),
+    var PurchaseList : List<StoreItem> = mutableListOf()
 ) {
-    constructor() : this("", "", 0, "", "", "", "", listOf(), listOf())
+    constructor() : this("", "", 0, "", "", "", "", mutableListOf(), mutableListOf(), mutableListOf())
 }
