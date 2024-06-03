@@ -31,6 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.data.Survey
 import com.example.ratemate.repository.SurveyRepository
+import com.example.ratemate.viewModel.SortType
+import com.example.ratemate.viewModel.SurveyModelFactory
+import com.example.ratemate.viewModel.SurveyViewModel
 
 
 @Composable

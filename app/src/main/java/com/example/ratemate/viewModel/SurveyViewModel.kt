@@ -1,4 +1,4 @@
-package com.example.ratemate.survey
+package com.example.ratemate.viewModel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
