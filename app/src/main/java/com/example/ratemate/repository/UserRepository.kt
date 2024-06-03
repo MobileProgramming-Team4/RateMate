@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class UserRepository() {
 
-    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("Comments")
+    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("user")
 
     // 사용자 추가
     fun addUser(user: User) {

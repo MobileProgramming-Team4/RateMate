@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class CommentRepository {
-    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("Comments")
+    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("comments")
 
     // 댓글 추가
     fun addComment(comment: Comment) {

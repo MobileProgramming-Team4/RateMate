@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class StoreItemRepository() {
 
-    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("Comments")
+    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("storeItem")
 
     // 상점 아이템 추가
     fun addItem(storeItem: StoreItem) {

@@ -9,15 +9,35 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SurveyRepository {
 
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("Surveys")
+    private val dbRef = database.getReference("surveys")
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     // 설문 추가
-    fun addSurvey(survey: Survey) {
-        dbRef.child(survey.surveyId).setValue(survey)
+    fun addSurvey(survey: Survey, callback: (() -> Unit)? = null) {
+        dbRef.orderByKey().limitToLast(1).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val maxId = snapshot.children.mapNotNull { it.key?.toIntOrNull() }.maxOrNull() ?: 0
+                val newSurveyId = (maxId + 1).toString()
+                survey.surveyId = newSurveyId
+                val currentDate = dateFormat.format(Date())
+                survey.createdDate = currentDate
+                survey.modifiedDate = currentDate
+                dbRef.child(newSurveyId).setValue(survey).addOnCompleteListener {
+                    callback?.invoke()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("SurveyRepository", "Failed to fetch last survey id: ${error.message}")
+            }
+        })
     }
 
     // 설문 삭제
@@ -39,9 +59,8 @@ class SurveyRepository {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // 여기서 에러 처리를 할 수 있습니다. 예를 들어, 로그를 남기거나 특정 콜백을 호출할 수 있습니다.
                 Log.e("SurveyDao", "Failed to fetch surveys: ${error.message}")
-                close(error.toException()) // Flow를 적절하게 닫고, 예외를 포함시킬 수 있습니다.
+                close(error.toException())
             }
         }
 
@@ -53,7 +72,7 @@ class SurveyRepository {
 
     // 특정 설문 조회
     fun getSurvey(surveyId: String): Flow<Survey?> = callbackFlow {
-        val listener = dbRef.child(surveyId).addValueEventListener(object : ValueEventListener {
+        val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val survey = snapshot.getValue(Survey::class.java)
                 trySend(survey).isSuccess
@@ -61,10 +80,11 @@ class SurveyRepository {
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e("SurveyDao", "Failed to fetch survey: ${error.message}")
-                close(error.toException()) // 에러 발생 시 Flow를 닫습니다.
+                close(error.toException())
             }
-        })
+        }
 
+        dbRef.child(surveyId).addValueEventListener(listener)
         awaitClose {
             dbRef.child(surveyId).removeEventListener(listener)
         }

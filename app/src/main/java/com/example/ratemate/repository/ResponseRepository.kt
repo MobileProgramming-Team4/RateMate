@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class ResponseRepository() {
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("Responses")
+    private val dbRef = database.getReference("responses")
 
     // 응답 추가
     fun addResponse(response: Response) {

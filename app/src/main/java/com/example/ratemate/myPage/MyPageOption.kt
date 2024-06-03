@@ -22,9 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
 @Composable
-fun Answer() {
+fun Answer(navController: NavHostController) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -36,7 +37,7 @@ fun Answer() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(items = dataList) {item->
-                Questionbox(text = item)
+                Questionbox(text = item, navController)
             }
         }
     }
@@ -83,7 +84,7 @@ fun Point() {
 }
 
 @Composable
-fun Quest() {
+fun Quest(navController: NavHostController) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -95,14 +96,14 @@ fun Quest() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(items = dataList) {item->
-                Questionbox(text = item)
+                Questionbox(text = item, navController)
             }
         }
     }
 }
 
 @Composable
-fun Questionbox(text: String) {
+fun Questionbox(text: String, navController: NavHostController) {
     Box(
         modifier = Modifier
             .size(350.dp, 100.dp)
@@ -110,7 +111,7 @@ fun Questionbox(text: String) {
             .background(Color.White)
             .border(width = 4.dp, color = Color.Black, shape = RoundedCornerShape(16.dp))
             .clickable {
-
+                navController.navigate("SurveyResult")
             },
         contentAlignment = Alignment.Center
     ) {
