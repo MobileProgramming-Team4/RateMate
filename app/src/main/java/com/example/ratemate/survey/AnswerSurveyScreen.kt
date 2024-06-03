@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ratemate.R
+import com.example.ratemate.ui.theme.NotoSansKr
 
 // 답변 화면
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,12 +63,16 @@ fun AnswerSurveyScreen(
             Column {
                 TopAppBar(
                     title = {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
                                 text = "설문조사",
                                 modifier = Modifier.padding(end = 48.dp),
+                                fontFamily = NotoSansKr,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                fontSize = 20.sp
                             )
                         }
                     },
@@ -83,31 +89,41 @@ fun AnswerSurveyScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = surveyTitle,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.fillMaxSize(),
+                fontFamily = NotoSansKr,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
             )
 
             Question(questions[currentPage], answers)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (!isFirstPage) {
-                    Button(onClick = { currentPage-- }) {
-                        Text("이전")
-                    }
+                Button(
+                    onClick = { if (!isFirstPage) currentPage-- },
+                    enabled = !isFirstPage,
+                    colors = ButtonDefaults.buttonColors(
+                        if (isFirstPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
+                    )
+                ) {
+                    Text("이전")
                 }
-                if (!isLastPage) {
-                    Button(onClick = { currentPage++ }) {
-                        Text("다음")
-                    }
+
+                Button(
+                    onClick = { if (!isLastPage) currentPage++ },
+                    enabled = !isLastPage,
+                    colors = ButtonDefaults.buttonColors(
+                        if (isLastPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
+                    )
+                ) {
+                    Text("다음")
                 }
             }
 
@@ -130,14 +146,16 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
     // 현재 질문에 대해 이미 선택된 답변을 가져옴
     val selectedAnswers = answers.getOrPut(question.question) { mutableStateListOf() }
 
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+    Column(modifier = Modifier.padding(vertical = 0.dp)) {
         Text(
             text = question.question,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
         )
         question.answers.forEach { answer ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+//                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 if (question.questionType == "single") {
                     RadioButton(
                         selected = selectedAnswers.contains(answer),
@@ -160,7 +178,7 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
                         }
                     )
                 }
-                Text(text = answer, modifier = Modifier.padding(start = 8.dp))
+                Text(text = answer)
             }
         }
     }
