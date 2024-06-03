@@ -1,14 +1,14 @@
 package com.example.ratemate.viewModel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.ratemate.data.Survey
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.ratemate.repository.SurveyRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 
 class SurveyModelFactory(private val repository: SurveyRepository) : ViewModelProvider.Factory {
@@ -22,30 +22,30 @@ class SurveyModelFactory(private val repository: SurveyRepository) : ViewModelPr
 }
 
 class SurveyViewModel(private val repository: SurveyRepository) : ViewModel() {
-    private val _surveys = MutableLiveData<List<Survey>?>()
-    val surveys: LiveData<List<Survey>?> = _surveys
+    private val _surveys = MutableStateFlow<List<Survey>?>(null)
+    val surveys: StateFlow<List<Survey>?> = _surveys.asStateFlow()
 
     init {
-        loadSurveys()
+        loadAllSurveys()
     }
 
-    private fun loadSurveys() {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllSurveys().collect { surveyList ->
-                _surveys.postValue(surveyList)
+    private fun loadAllSurveys() {
+        viewModelScope.launch {
+            repository.getAllSurveys().collect { surveys ->
+                _surveys.value = surveys
             }
         }
     }
 
     fun sortSurveys(sortType: SortType) {
-        val sortedList = _surveys.value?.let {
-            when (sortType) {
-                SortType.LATEST -> it.sortedBy { survey -> survey.createdDate }
-                SortType.MOST_LIKED -> it.sortedByDescending { survey -> survey.likes }
-                SortType.MOST_RESPONDED -> it.sortedByDescending { survey -> survey.responses }
+        viewModelScope.launch {
+            val sortedSurveys = when (sortType) {
+                SortType.LATEST -> _surveys.value?.sortedByDescending { it.createdDate }
+                SortType.MOST_LIKED -> _surveys.value?.sortedByDescending { it.likes }
+                SortType.MOST_RESPONDED -> _surveys.value?.sortedByDescending { it.responses }
             }
+            _surveys.value = sortedSurveys
         }
-        _surveys.postValue(sortedList)
     }
 }
 
