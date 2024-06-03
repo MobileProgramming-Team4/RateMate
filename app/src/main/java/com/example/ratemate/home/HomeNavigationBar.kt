@@ -1,4 +1,4 @@
-package com.example.ratemate.myPage
+package com.example.ratemate.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Icon
@@ -13,46 +13,59 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.ratemate.home.SurveyResultScreen
-import com.example.ratemate.navigation.Route
+import com.example.ratemate.Store.StoreScreen
+import com.example.ratemate.myPage.MyPageScreen
+import com.example.ratemate.setting.Option
+import com.example.ratemate.survey.CreateSurveyScreen
+import com.example.ratemate.survey.QuestionItem
+import com.example.ratemate.survey.SurveyListScreen
 
-sealed class MyPageNavRoutes (val route: String) {
-    object Quest : MyPageNavRoutes("Quest")
-    object Answer : MyPageNavRoutes("Answer")
-    object Point : MyPageNavRoutes("Point")
-    object SurveyResult: MyPageNavRoutes("SurveyResult")
+
+sealed class HomeNavRoutes (val route: String) {
+    object Home : HomeNavRoutes("Home")
+    object Question : HomeNavRoutes("Question")
+    object MyPage : HomeNavRoutes("MyPage")
+    object Shop : HomeNavRoutes("Shop")
+    object Option : HomeNavRoutes("Option")
 }
 
 @Composable
-fun NavigationHost(navController: NavHostController) {
+fun HomeNavigationHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = MyPageNavRoutes.Quest.route
+        startDestination = HomeNavRoutes.Home.route
     ){
-        composable(MyPageNavRoutes.Quest.route){
-            Quest(navController)
+        composable(HomeNavRoutes.Home.route){
+            SurveyListScreen()
         }
-        composable(MyPageNavRoutes.Answer.route){
-            Answer(navController)
+        composable(HomeNavRoutes.Question.route){
+            CreateSurveyScreen { title, questions ->
+                println("Title: $title")
+                questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
+            }
         }
-        composable(MyPageNavRoutes.Point.route){
-            Point()
+        composable(HomeNavRoutes.MyPage.route){
+            MyPageScreen()
         }
-        composable(MyPageNavRoutes.SurveyResult.route) {
-            SurveyResultScreen()
+        composable(HomeNavRoutes.Shop.route){
+            StoreScreen(navController)
         }
+        composable(HomeNavRoutes.Option.route){
+            Option()
+        }
+
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MyPageNavigationBar(navController: NavController) {
+fun HomeNavigationBar(navController: NavController) {
 
     NavigationBar {
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
 
-        MyPageNavBarItems.MyPageBarItems.forEach { navItem ->
+        HomeNavBarItems.HomeBarItems.forEach { navItem ->
             NavigationBarItem(
                 selected = currentRoute == navItem.route,
                 onClick = {

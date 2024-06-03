@@ -34,7 +34,7 @@ import com.example.ratemate.repository.SurveyRepository
 
 
 @Composable
-fun SurveyListScreen(navController: NavController) {
+fun SurveyListScreen() {
     val repository = SurveyRepository()
     val viewModel: SurveyViewModel = viewModel(factory = SurveyModelFactory(repository))
     val surveys by viewModel.surveys.observeAsState(initial = null)

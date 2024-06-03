@@ -72,7 +72,7 @@ import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun SurveyResultScreen(navController: NavHostController) {
+fun SurveyResultScreen() {
 
     val surveyResult = getExampleSurveyResult()
     val user = getExampleUser()
