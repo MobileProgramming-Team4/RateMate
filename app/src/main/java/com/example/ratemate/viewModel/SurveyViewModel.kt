@@ -9,7 +9,8 @@ import com.example.ratemate.repository.SurveyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
+import java.text.SimpleDateFormat
+import java.util.*
 
 class SurveyModelFactory(private val repository: SurveyRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -24,6 +25,8 @@ class SurveyModelFactory(private val repository: SurveyRepository) : ViewModelPr
 class SurveyViewModel(private val repository: SurveyRepository) : ViewModel() {
     private val _surveys = MutableStateFlow<List<Survey>?>(null)
     val surveys: StateFlow<List<Survey>?> = _surveys.asStateFlow()
+
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     init {
         loadAllSurveys()
@@ -40,11 +43,19 @@ class SurveyViewModel(private val repository: SurveyRepository) : ViewModel() {
     fun sortSurveys(sortType: SortType) {
         viewModelScope.launch {
             val sortedSurveys = when (sortType) {
-                SortType.LATEST -> _surveys.value?.sortedByDescending { it.createdDate }
+                SortType.LATEST -> _surveys.value?.sortedByDescending { parseDate(it.createdDate) }
                 SortType.MOST_LIKED -> _surveys.value?.sortedByDescending { it.likes }
                 SortType.MOST_RESPONDED -> _surveys.value?.sortedByDescending { it.responses }
             }
             _surveys.value = sortedSurveys
+        }
+    }
+
+    private fun parseDate(dateString: String): Date {
+        return try {
+            dateFormat.parse(dateString) ?: Date(0)
+        } catch (e: Exception) {
+            Date(0)
         }
     }
 }
