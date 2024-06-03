@@ -9,7 +9,6 @@ import java.util.UUID
 data class SurveyResult(
     val title: String,
     val writer: String,
-    val content: String,
     val like: Int,
     val date: Date = Date(),
     val comments: List<Comment> = mutableListOf(),
@@ -42,8 +41,16 @@ data class SurveyResultUser(
     var isLiked: Boolean = false
 )
 
-data class User(
-    val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
-    val userImg: Painter,
-    val userName: String
+//data class User(
+//    val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
+//    val userImg: Painter,
+//    val userName: String,
+//    var point : Int = 0,
+//    var PurchaseList : List<String> = mutableListOf()
+//)
+
+data class ResultContent(
+    val question: String,
+    val answer : List<String>,
+    val answerCount : List<Int>
 )

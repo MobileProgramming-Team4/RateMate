@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
 import com.example.ratemate.survey.CreateSurveyScreen
@@ -47,11 +48,12 @@ fun HomeNavigationHost(navController: NavHostController) {
             MyPageScreen()
         }
         composable(HomeNavRoutes.Shop.route){
-            //Shop()
+            StoreScreen(navController)
         }
         composable(HomeNavRoutes.Option.route){
             Option()
         }
+
     }
 }
 

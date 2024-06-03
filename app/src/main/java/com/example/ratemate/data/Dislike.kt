@@ -1,8 +1,8 @@
 package com.example.ratemate.data
 
-data class Like(
+data class Dislike(
     var count: Int = 0,
-    var usersWhoLiked: MutableList<String> = mutableListOf()
+    var usersWhoDisliked: MutableList<String> = mutableListOf()
 ) {
     constructor() : this(0, mutableListOf())
 }

@@ -6,6 +6,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ratemate.survey.SurveyListScreen
+import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.home.HomeScreen
 import com.example.ratemate.login.RegisterScreen
 import com.example.ratemate.login.StartScreen
@@ -17,6 +19,8 @@ sealed class Route(val route: String){
     object Login: Route("Login")
     object Register: Route("Register")
     object Home: Route("Home")
+    object SurveyResult: Route("SurveyResult")
+    object SurveyList: Route("SurveyList")
 }
 
 @Composable
