@@ -16,11 +16,13 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -103,7 +105,8 @@ fun AnswerSurveyScreen(
             Question(questions[currentPage], answers)
 
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -115,7 +118,15 @@ fun AnswerSurveyScreen(
                         if (isFirstPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
                     )
                 ) {
-                    Text("이전")
+                    Text(
+                        text = "이전",
+                        fontFamily = NotoSansKr,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isFirstPage) colorResource(id = R.color.gray_500) else colorResource(
+                            id = R.color.white
+                        )
+                    )
                 }
 
                 Button(
@@ -126,7 +137,15 @@ fun AnswerSurveyScreen(
                         if (isLastPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
                     )
                 ) {
-                    Text("다음")
+                    Text(
+                        text = "다음",
+                        fontFamily = NotoSansKr,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isLastPage) colorResource(id = R.color.gray_500) else colorResource(
+                            id = R.color.white
+                        )
+                    )
                 }
             }
 
@@ -138,7 +157,12 @@ fun AnswerSurveyScreen(
                         .padding(top = 8.dp),
                     colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue))
                 ) {
-                    Text("설문조사 제출")
+                    Text(
+                        text = "설문조사 제출",
+                        fontFamily = NotoSansKr,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -167,7 +191,11 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
                             selectedAnswers.clear()
                             selectedAnswers.add(answer)
                             answers[question.question] = selectedAnswers
-                        }
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = colorResource(id = R.color.main_blue),
+                            unselectedColor = colorResource(id = R.color.gray_200)
+                        )
                     )
                 } else {
                     Checkbox(
@@ -179,7 +207,11 @@ fun Question(question: QuestionItem, answers: MutableMap<String, MutableList<Str
                                 selectedAnswers.remove(answer)
                             }
                             answers[question.question] = selectedAnswers
-                        }
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = colorResource(id = R.color.main_blue),
+                            uncheckedColor = colorResource(id = R.color.gray_200)
+                        )
                     )
                 }
                 Text(
