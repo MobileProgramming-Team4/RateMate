@@ -23,16 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.ratemate.R
 import com.example.ratemate.data.StoreItem
-import com.example.ratemate.home.User
-
+import com.example.ratemate.data.User
+import com.example.ratemate.home.getExampleUser
 import com.google.firebase.auth.FirebaseAuth
 import java.util.UUID
 
 @Composable
 fun StoreScreen(navController: NavController) {
-    var user = getExampleUserData()
+    val user = getExampleUser()
     val goods = getExampleGoodsList()
     var showPurchased by rememberSaveable { mutableStateOf(false) }
+
+    user.PurchaseList = listOf(goods[0], goods[2])
 
 
 
@@ -64,26 +66,12 @@ fun StoreScreen(navController: NavController) {
 
 
 @Composable
-fun getExampleUserData() : User {
-    val user = User(
-        user = FirebaseAuth.getInstance().currentUser,
-        userImg = painterResource(id = R.drawable.logo_only),
-        userName = FirebaseAuth.getInstance().currentUser?.email.toString(),
-        point = 200,
-        PurchaseList = listOf("id1", "id3")
-    )
-
-    return user
-
-}
-
-@Composable
 fun getExampleGoodsList() : List<StoreItem> {
     val goodsList = mutableListOf<StoreItem>()
 
-    goodsList.add(StoreItem("id1", "item1", 100, "item1"))
+    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item2", 200, "item2"))
-    goodsList.add(StoreItem("id3", "item3", 300, "item3"))
+    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item3", 300, "item3"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item4", 400, "item4"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item5", 500, "item5"))
 
@@ -115,14 +103,15 @@ fun StoreUserInfo(user: User, modifier: Modifier) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(100.dp))
             Image(
-                painter = user.userImg,
+                painter = painterResource(id = user.profileImage.toInt()),
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
                     .background(Color.Gray, shape = CircleShape)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Column (
                 modifier =
                 Modifier
@@ -130,8 +119,8 @@ fun StoreUserInfo(user: User, modifier: Modifier) {
                     .padding(8.dp)
                     .clip(MaterialTheme.shapes.medium)
             ){
-                Text(text = user.userName, style = MaterialTheme.typography.h6)
-                Text(text = "잔여 포인트: ${user.point}", style = MaterialTheme.typography.body1)
+                Text(text = user.email, style = MaterialTheme.typography.h6)
+                Text(text = "잔여 포인트: ${user.points}", style = MaterialTheme.typography.body1)
             }
 
         }
@@ -161,22 +150,21 @@ fun StoreCheckBox( showPurchased : Boolean ,modifier : Modifier, clickCheckBox :
 }
 
 @Composable
-fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<String>, showPurchased: Boolean, modifier: Modifier){
+fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>, showPurchased: Boolean, modifier: Modifier){
 
     var showGoodsList by rememberSaveable { mutableStateOf(goodsList) }
 
-    showGoodsList = if (!showPurchased){
-        goodsList.filter { !purchasedList.contains(it.itemId) }
-    }
-    else{
+    showGoodsList = if (showPurchased) {
         goodsList
+    } else {
+        goodsList.filter { !purchasedList.contains(it) }
     }
 
     LazyColumn(
         modifier = modifier
     ){
         items(showGoodsList){
-            ShowGoods(goods = it, isPurchased = purchasedList.contains(it.itemId))
+            ShowGoods(goods = it, isPurchased = purchasedList.contains(it))
             Divider()
         }
     }
