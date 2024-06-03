@@ -17,7 +17,6 @@ sealed class Route(val route: String){
     object Login: Route("Login")
     object Register: Route("Register")
     object Home: Route("Home")
-    object SurveyResult: Route("SurveyResult")
 }
 
 @Composable
@@ -39,16 +38,11 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
             LoginScreen(navController, mail, pw)
         }
 
-
         composable("Register") {
             RegisterScreen(navController)
         }
         composable("Home") {
             HomeScreen(navController)
-        }
-
-        composable("SurveyResult") {
-            SurveyResultScreen(navController)
         }
     }
 }

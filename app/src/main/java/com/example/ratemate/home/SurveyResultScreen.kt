@@ -59,7 +59,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 
 @Composable
-fun SurveyResultScreen(navController: NavHostController) {
+fun SurveyResultScreen() {
 
     val surveyResult = getExampleSurveyResult()
     val user = getExampleUser()
