@@ -57,5 +57,14 @@ fun HomeScreen(navController: NavHostController) {
             // HomeNavigationHost should be placed in the content slot
             HomeNavigationHost(navController = HomenavController)
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+            navController.navigate("SurveyList"){
+                popUpTo("Start"){ inclusive = true }
+            }
+        }) {
+            Text("SurveyList")
+        }
     }
 }
