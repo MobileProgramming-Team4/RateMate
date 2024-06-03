@@ -52,7 +52,10 @@ fun RegisterScreen(navController: NavHostController){
 
     var userMail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordCheck by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
+    var passwordVisibility2 by remember { mutableStateOf(false) }
+
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -100,7 +103,7 @@ fun RegisterScreen(navController: NavHostController){
                     .clip(RoundedCornerShape(30.dp))
             )
 
-
+            //이메일 입력창
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = userMail,
@@ -113,6 +116,7 @@ fun RegisterScreen(navController: NavHostController){
             )
 
 
+            //비밀번호 입력창
             Spacer(modifier = Modifier.height(8.dp))
             Row {
                 OutlinedTextField(
@@ -138,7 +142,34 @@ fun RegisterScreen(navController: NavHostController){
                 )
             }
 
+            //비밀번호 확인 입력창
+            Spacer(modifier = Modifier.height(8.dp))
+            Row {
+                OutlinedTextField(
+                    value = passwordCheck,
+                    onValueChange = {passwordCheck = it},
+                    label = { Text("Password Check") },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisibility2) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Password
+                    ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        keyboardController?.hide()
+                    }),
+                    trailingIcon = {
+                        val icon = if (passwordVisibility2) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        val description = if (passwordVisibility2) "Hide password" else "Show password"
+                        IconButton(onClick = { passwordVisibility2 = !passwordVisibility2 }) {
+                            Icon(imageVector = icon, contentDescription = description)
+                        }
+                    }
+                )
+            }
 
+
+            //회원가입 버튼
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
@@ -148,7 +179,10 @@ fun RegisterScreen(navController: NavHostController){
                         Toast.makeText(context, "비밀번호를 입력해 주세요", Toast.LENGTH_SHORT).show()
                     } else if (password.length < 6) {
                         Toast.makeText(context, "비밀번호는 6자 이상이어야 합니다.", Toast.LENGTH_SHORT).show()
-                    } else {
+                    } else if (password != passwordCheck) {
+                        Toast.makeText(context, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                    else {
                         registerUser(userMail, password) {
                             if (it == "가입 성공") {
                                 Toast.makeText(context, "회원가입 성공 : $userMail", Toast.LENGTH_SHORT).show()
@@ -179,10 +213,13 @@ fun RegisterScreen(navController: NavHostController){
             ) {
                 Text("회원가입")
             }
+
+
         }
     }
 }
 
+//회원가입 함수
 fun registerUser(email: String, password: String, onResult: (String) -> Unit) {
     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->

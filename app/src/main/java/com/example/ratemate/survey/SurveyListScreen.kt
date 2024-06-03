@@ -25,7 +25,7 @@ import com.example.ratemate.viewModel.SurveyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SurveyListScreen(navController: NavController) {
+fun SurveyListScreen() {
     val repository = SurveyRepository()
     val viewModel: SurveyViewModel = viewModel(factory = SurveyModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState()

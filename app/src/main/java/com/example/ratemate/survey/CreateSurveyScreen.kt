@@ -164,11 +164,3 @@ fun QuestionEditor(question: QuestionItem, onAddAnswer: () -> Unit, onRemove: ()
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSurveyRegistrationScreen() {
-    CreateSurveyScreen { title, questions ->
-        println("Title: $title")
-        questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
-    }
-}

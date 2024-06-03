@@ -41,13 +41,13 @@ data class SurveyResultUser(
     var isLiked: Boolean = false
 )
 
-data class User(
-    val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
-    val userImg: Painter,
-    val userName: String,
-    var point : Int = 0,
-    var PurchaseList : List<String> = mutableListOf()
-)
+//data class User(
+//    val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
+//    val userImg: Painter,
+//    val userName: String,
+//    var point : Int = 0,
+//    var PurchaseList : List<String> = mutableListOf()
+//)
 
 data class ResultContent(
     val question: String,

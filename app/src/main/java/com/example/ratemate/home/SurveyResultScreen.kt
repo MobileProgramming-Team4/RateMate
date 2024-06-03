@@ -5,26 +5,34 @@ import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ThumbDown
@@ -34,6 +42,8 @@ import androidx.compose.material.icons.filled.ThumbUpOffAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,6 +62,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
@@ -66,11 +78,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ratemate.R
+import com.example.ratemate.data.User
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
+import java.util.Date
 
 @Composable
-fun SurveyResultScreen(navController: NavHostController) {
+fun SurveyResultScreen() {
 
     val surveyResult = getExampleSurveyResult()
     val user = getExampleUser()
@@ -79,8 +93,8 @@ fun SurveyResultScreen(navController: NavHostController) {
 
     val title = surveyResult.title
     val writer = surveyResult.writer
-    val userImg = user.userImg
-    val userName = user.userName
+    val userImg = user.profileImage
+    val userName = user.email
     var commentList by rememberSaveable { mutableStateOf(surveyResult.comments) }
     var like by remember { mutableIntStateOf(surveyResult.like) }
     var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
@@ -126,10 +140,11 @@ fun SurveyResultScreen(navController: NavHostController) {
     }
 
     //댓글 추가 함수
+    @Composable
     fun addComment(comment: String) {
         val calendar = Calendar.getInstance()
         val newComment = Comment(
-            img = userImg,
+            img = painterResource(id = userImg.toInt()),
             username = userName,
             commentText = comment,
             like = 0,
@@ -150,7 +165,7 @@ fun SurveyResultScreen(navController: NavHostController) {
 
 
     //댓글 입력 버튼 클릭시 실행될 함수
-    val onClickSend = { comment: String ->
+    val onClickSend = @Composable { comment: String ->
         if (comment == "") {
             Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
         } else {
@@ -165,25 +180,20 @@ fun SurveyResultScreen(navController: NavHostController) {
         modifier = Modifier.fillMaxSize()
     ){
 
-        //상단
-
 
         //제목, 작성자
-        val modifier1 = Modifier.weight(1.2f)
+        val modifier1 = Modifier.weight(1f)
         ShowTitle(title = title, writer = writer, modifier = modifier1)
 
         //내용
         val modifier2 = Modifier.weight(7f)
         ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
 
-        //좋아요, 댓글 수
-        val modifier3 = Modifier.weight(1f)
-        ShowCounts(isLiked = isLiked, like = like, numberOfComment = numberOfComment, modifier = modifier3, clickLikes = clickLikes)
-
-        //댓글 정렬 방법 버튼
-        Divider(thickness = 3.dp)
-        val modifier4 = Modifier.weight(0.8f)
-        ShowSortComment(sortComment = sortComment, modifier = modifier4, clickSortByLikes = clickSortByLikes, clickSortByDate = clickSortByDate)
+        //좋아요, 댓글 수, 댓글 정렬 방법 버튼
+        val modifier3 = Modifier.height(40.dp)
+        ShowCounts(isLiked = isLiked, like = like, numberOfComment = numberOfComment,
+            sortComment = sortComment, modifier = modifier3, clickLikes = clickLikes,
+            clickSortByLikes = clickSortByLikes, clickSortByDate = clickSortByDate)
 
         //댓글 리스트
         Divider()
@@ -191,10 +201,8 @@ fun SurveyResultScreen(navController: NavHostController) {
         ShowComments(username = userName, comments = commentList, modifier = modifier5)
 
         //댓글 입력창
-        val modifier6 = Modifier.weight(1.5f)
+        val modifier6 = Modifier.height(70.dp)
         ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
-
-        //바텀 네비게이션바
 
 
     }
@@ -243,10 +251,21 @@ fun getExampleSurveyResult(): SurveyResult {
 
 @Composable
 fun getExampleUser(): User {
-    return User(
-        userImg = painterResource(id = R.drawable.logo_only),
-        userName = FirebaseAuth.getInstance().currentUser?.email ?: "Guest"
-    )
+    val user = User()
+    val me = FirebaseAuth.getInstance().currentUser
+
+    user.userId = me?.uid ?: "null"
+    user.email = me?.email ?: "null"
+    user.points = 1000
+    user.createdDate = Date().toString()
+    user.modifiedDate = Date().toString()
+    user.status = "active"
+    user.profileImage = R.drawable.profile.toString()
+    user.surveysCreated = mutableListOf("1", "2", "3")
+    user.surveysParticipated = mutableListOf("4", "5", "6")
+    user.PurchaseList = mutableListOf()
+
+    return user
 }
 
 @Composable
@@ -274,14 +293,21 @@ fun getExampleUserChoice() : List<List<Int>>{
 
 @Composable
 fun ShowTitle(title: String, writer: String, modifier: Modifier) {
-    Column(modifier = modifier) {
+    Row(modifier = modifier
+        .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         //제목
         Text(
             text = title,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
         )
+
+        Spacer(modifier = Modifier.weight(1f))
 
         //작성자
         Text(
@@ -316,18 +342,21 @@ fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>,
                 .padding(10.dp)
         ){
 
-            //설문 결과
-            ShowResult(result = content[currentContent], userChoice = userChoice[currentContent], modifier = Modifier.weight(8f))
-
-
-            //이전, 다음 버튼
+            //질문 + 이전, 다음 버튼
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                //질문
+                Text(
+                    text = content[currentContent].question,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(8f)
+                )
+
                 //이전 버튼
                 Button(
                     onClick = {
@@ -336,13 +365,20 @@ fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>,
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == 0) Color.Gray else Color.Black
+                        containerColor = if (currentContent == 0) Color.Gray else Color.Black,
+                        contentColor = Color.White
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(60.dp)
                 ) {
-                    Text(text = "이전")
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        contentDescription = "back",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp))
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
                 //다음 버튼
                 Button(
                     onClick = {
@@ -351,13 +387,25 @@ fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>,
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == contentSize - 1) Color.Gray else Color.Black
+                        containerColor = if (currentContent == contentSize - 1) Color.Gray else Color.Black,
+                        contentColor = Color.White
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(60.dp)
                 ) {
-                    Text(text = "다음")
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = "next",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
+
             }
+
+            //설문 결과
+            ShowResult(result = content[currentContent], userChoice = userChoice[currentContent], modifier = Modifier.weight(8f))
+
         }
     }
 }
@@ -368,15 +416,6 @@ fun ShowResult(result : ResultContent, userChoice : List<Int>, modifier: Modifie
         modifier = modifier
             .fillMaxWidth()
     ){
-
-        //질문
-        Text(
-            text = result.question,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         //설문 결과 차트
         SelectionPercentageChart(answers = result.answer,choices = result.answerCount, userChoices = userChoice )
@@ -399,7 +438,7 @@ fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoi
         // 차트
         Canvas(modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)) {
+            .weight(3f)) {
             val barWidth = size.width / (choices.size * 2)
             percentages.forEachIndexed { index, percentage ->
                 val barHeight = size.height * (percentage / 100)
@@ -447,11 +486,18 @@ fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoi
 @Composable
 fun ShowCounts(
     isLiked: Boolean,
+    sortComment: String,
     like: Int,
     numberOfComment: Int,
     modifier: Modifier,
-    clickLikes: () -> Unit
+    clickLikes: () -> Unit,
+    clickSortByLikes: () -> Unit,
+    clickSortByDate: () -> Unit
 ) {
+
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf("댓글 정렬") }
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -481,53 +527,52 @@ fun ShowCounts(
         Text(text = "$numberOfComment comments")
 
 
-    }
-}
 
-@Composable
-fun ShowSortComment(
-    sortComment: String,
-    modifier: Modifier,
-    clickSortByLikes: () -> Unit,
-    clickSortByDate: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
+        Spacer(modifier = Modifier.weight(1f))
+        //인기순, 최신순 버튼
+        Box(
+            contentAlignment = Alignment.CenterEnd,
+            modifier = Modifier.fillMaxSize()
+        ){
+            Button(
+                onClick = {expanded = true},
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.5f))
+                    .clip(RoundedCornerShape(6.dp))
 
-        //인기순
-        Button(
-            onClick = {
-                clickSortByLikes()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (sortComment == "인기순") Color.Black else Color.Gray
-            ),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp)
+                ,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Black
+                ),
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text(
+                    text = selectedText,
+                    modifier = Modifier.safeContentPadding()
+                    )
+            }
 
-        ) {
-            Text(text = "인기순")
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ){
+
+                DropdownMenuItem(text = { Text(text = "인기순") },
+                    onClick = { clickSortByLikes(); expanded = false})
+
+                DropdownMenuItem(text = { Text(text = "최신순") },
+                    onClick = { clickSortByDate(); expanded = false})
+
+
+            }
+
         }
 
 
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(
-            onClick = {
-                clickSortByDate()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (sortComment == "최신순") Color.Black else Color.Gray
-            ),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text(text = "최신순")
-        }
-
     }
 }
+
 
 @Composable
 fun ShowComments(username: String, comments: List<Comment>, modifier: Modifier) {
@@ -697,14 +742,14 @@ fun ShowComment(
 }
 
 @Composable
-fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
+fun ShowCommentInput(modifier: Modifier, onClickSend: @Composable (String) -> Unit) {
 
     var userComment by rememberSaveable { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    var sendComment by rememberSaveable { mutableStateOf(false) }
 
     Row(
-        modifier = modifier.padding(10.dp),
+        modifier = modifier.padding(start = 10.dp, end = 10.dp),
         verticalAlignment = Alignment.CenterVertically
 
     ) {
@@ -721,10 +766,10 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (userComment != "") {
-                        onClickSend(userComment)
-                        userComment = ""
-                    } else {
-//                        keyboardController?.hide()
+                        sendComment = true
+                    }
+
+                    else {
                         focusManager.clearFocus()
 
                     }
@@ -738,8 +783,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
         //전송 버튼
         Button(
             onClick = {
-                onClickSend(userComment)
-                userComment = ""
+                sendComment = true
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Black
@@ -752,6 +796,12 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: (String) -> Unit) {
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
             )
+        }
+
+        if (sendComment) {
+            onClickSend(userComment)
+            userComment = ""
+            sendComment = false
         }
 
     }
