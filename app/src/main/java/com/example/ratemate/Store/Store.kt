@@ -1,5 +1,6 @@
 package com.example.ratemate.Store
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,9 +33,38 @@ import java.util.UUID
 fun StoreScreen(navController: NavController) {
     val user = getExampleUser()
     val goods = getExampleGoodsList()
-    var showPurchased by rememberSaveable { mutableStateOf(false) }
-
+    val showGoodsList by rememberSaveable { mutableStateOf(goods) }
     user.PurchaseList = listOf(goods[0], goods[2])
+    var userPurchaseList by rememberSaveable { mutableStateOf(user.PurchaseList) }
+    var showPurchased by rememberSaveable { mutableStateOf(false) }
+    var points by rememberSaveable { mutableIntStateOf(user.points) }
+    val context = LocalContext.current
+
+    val clickBuy: (String) -> Unit = { itemId ->
+        val item = showGoodsList.find { it.itemId == itemId }
+        Log.d("상점 화면", "구매 버튼 클릭")
+        if (item == null) {
+            Log.d("상점 화면", "상품을 찾을 수 없음")
+            Log.d("상점 화면", "itemId: $itemId")
+            for (good in goods) {
+                Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
+            }
+
+        }
+        else if (points < item.cost) {
+            Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
+        } else {
+            points -= item.cost
+            userPurchaseList = userPurchaseList + item
+            user.PurchaseList = userPurchaseList
+
+            Log.d("상점 화면", "상품 구매 후")
+            for (good in showGoodsList) {
+                Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
+
+            }
+        }
+    }
 
 
 
@@ -43,11 +73,9 @@ fun StoreScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize()
     ) {
 
-        //상단
-
         //유저정보
         val modifier1 = Modifier.weight(50f)
-        StoreUserInfo(user = user, modifier = modifier1)
+        StoreUserInfo(user = user, points = points ,modifier = modifier1)
 
         //체크박스
         Divider()
@@ -56,9 +84,7 @@ fun StoreScreen(navController: NavController) {
 
         //상품 리스트
         val modifier3 = Modifier.weight(50f)
-        StoreGoodsList(goods, user.PurchaseList ,showPurchased, modifier = modifier3)
-
-        //바텀 네비게이션
+        StoreGoodsList(showGoodsList, userPurchaseList ,showPurchased, modifier = modifier3, clickBuy = clickBuy)
 
     }
 }
@@ -69,9 +95,9 @@ fun StoreScreen(navController: NavController) {
 fun getExampleGoodsList() : List<StoreItem> {
     val goodsList = mutableListOf<StoreItem>()
 
-    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
-    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item2", 200, "item2"))
-    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item3", 300, "item3"))
+    goodsList.add(StoreItem("id1", "item1", 100, "item1"))
+    goodsList.add(StoreItem("id2", "item2", 200, "item2"))
+    goodsList.add(StoreItem("id3", "item3", 300, "item3"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item4", 400, "item4"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item5", 500, "item5"))
 
@@ -80,7 +106,7 @@ fun getExampleGoodsList() : List<StoreItem> {
 
 
 @Composable
-fun StoreUserInfo(user: User, modifier: Modifier) {
+fun StoreUserInfo(user: User, points : Int , modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -120,7 +146,7 @@ fun StoreUserInfo(user: User, modifier: Modifier) {
                     .clip(MaterialTheme.shapes.medium)
             ){
                 Text(text = user.email, style = MaterialTheme.typography.h6)
-                Text(text = "잔여 포인트: ${user.points}", style = MaterialTheme.typography.body1)
+                Text(text = "잔여 포인트: $points", style = MaterialTheme.typography.body1)
             }
 
         }
@@ -150,7 +176,16 @@ fun StoreCheckBox( showPurchased : Boolean ,modifier : Modifier, clickCheckBox :
 }
 
 @Composable
-fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>, showPurchased: Boolean, modifier: Modifier){
+fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
+                   showPurchased: Boolean, modifier: Modifier, clickBuy: (String) -> Unit
+){
+
+    LaunchedEffect(Unit) {
+        Log.d("상점 화면", "상품 리스트 렌더링 시작")
+        for (good in goodsList) {
+            Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
+        }
+    }
 
     var showGoodsList by rememberSaveable { mutableStateOf(goodsList) }
 
@@ -164,14 +199,14 @@ fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>, s
         modifier = modifier
     ){
         items(showGoodsList){
-            ShowGoods(goods = it, isPurchased = purchasedList.contains(it))
+            ShowGoods(goods = it, isPurchased = purchasedList.contains(it), clickBuy = clickBuy)
             Divider()
         }
     }
 }
 
 @Composable
-fun ShowGoods(goods: StoreItem, isPurchased: Boolean){
+fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit){
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
 
@@ -208,7 +243,8 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean){
             confirmButton = {
                 Button(
                     onClick = {
-
+                        Log.d("상점 화면", "전달 전 : ${goods.itemName} -> ${goods.itemId}")
+                        clickBuy(goods.itemId)
                         showDialog = false
                     }
                 ) {

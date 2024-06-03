@@ -1,53 +1,32 @@
 package com.example.ratemate.home
 
 import androidx.compose.ui.graphics.painter.Painter
+import com.example.ratemate.data.Comment
+import com.example.ratemate.data.Like
+import com.example.ratemate.data.Question
+import com.example.ratemate.data.Response
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import java.util.Date
 import java.util.UUID
 
-data class SurveyResult(
-    val title: String,
-    val writer: String,
-    val like: Int,
-    val date: Date = Date(),
-    val comments: List<Comment> = mutableListOf(),
-    var surveyResultUserList: MutableList<SurveyResultUser>
+data class SurveyResultEX(
+    var surveyId: String = "",
+    var creatorId: String = "",
+    var title: String = "",
+    var content: String = "",
+    var likes: Like = Like(),
+    var createdDate: String = "",
+    var modifiedDate: String = "",
+    var status: String = "",
+    var questions: Map<String, Question> = emptyMap(),
+    var responses: Map<String, Response> = emptyMap(),
+    var comments: Map<String, Comment> = emptyMap()
+) {
+    constructor() : this("", "", "", "", Like(), "", "", "", emptyMap(), emptyMap(), emptyMap())
 
-)
+}
 
-data class Comment(
-    val id: UUID = UUID.randomUUID(),
-    var img: Painter,
-    var username: String,
-    var commentText: String,
-    var like: Int,
-    var dislike: Int,
-    val date: Date = Date(),
-    var commentUserList: MutableList<CommentUser>
-)
-
-
-data class CommentUser(
-    val user: String,
-    var isUsersComment: Boolean = false,
-    var isLiked: Boolean = false,
-    var isDisliked: Boolean = false
-)
-
-
-data class SurveyResultUser(
-    val user: String,
-    var isLiked: Boolean = false
-)
-
-//data class User(
-//    val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
-//    val userImg: Painter,
-//    val userName: String,
-//    var point : Int = 0,
-//    var PurchaseList : List<String> = mutableListOf()
-//)
 
 data class ResultContent(
     val question: String,
