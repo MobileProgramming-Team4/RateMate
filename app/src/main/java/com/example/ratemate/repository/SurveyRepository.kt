@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.callbackFlow
 class SurveyRepository {
 
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("Surveys")
+    private val dbRef = database.getReference("surveys")
 
     // 설문 추가
     fun addSurvey(survey: Survey) {

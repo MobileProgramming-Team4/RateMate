@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.callbackFlow
 class PointTransactionRepository() {
 
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("PointTransactions")
+    private val dbRef = database.getReference("pointTransactions")
 
     // 포인트 거래 추가
     fun addPointTransaction(transaction: PointTransaction) {

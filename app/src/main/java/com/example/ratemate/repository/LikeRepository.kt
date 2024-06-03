@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.callbackFlow
 class LikeRepository() {
 
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("Likes")
+    private val dbRef = database.getReference("likes")
 
     // 좋아요 항목 생성 또는 업데이트
     fun setLike(likeId: String, like: Like) {
