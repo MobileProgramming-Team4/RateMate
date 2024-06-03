@@ -160,8 +160,3 @@ fun SurveyItem(survey: Survey) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SurveyListScreenPreview() {
-    SurveyListScreen(navController = rememberNavController())
-}
