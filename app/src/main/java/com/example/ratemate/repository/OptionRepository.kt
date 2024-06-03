@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class OptionRepository {
 
-    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("Options")
+    private val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("options")
 
     // 옵션 생성 또는 업데이트
     fun setOption(optionId: String, option: Option) {
