@@ -10,7 +10,7 @@ data class Survey(
     var createdDate: String = "",
     var modifiedDate: String = "",
     var status: String = "",
-    var questions: Map<String, Question> = emptyMap()
+    var questions: MutableList<Question> = mutableListOf() // Changed to MutableList
 ) {
-    constructor() : this("", "", "", "", 0, 0, "", "", "", emptyMap())
+    constructor() : this("", "", "", "", 0, 0, "", "", "", mutableListOf())
 }
