@@ -44,10 +44,7 @@ fun SurveyListScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { /* Handle navigation icon press */ }) {
-                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기", tint = Color.Black)
-                        }
-                        Spacer(modifier = Modifier.weight(4f))
+                        Spacer(modifier = Modifier.weight(3.3f))
                         Text(
                             "Home",
                             fontSize = 25.sp,
@@ -55,6 +52,11 @@ fun SurveyListScreen(navController: NavController) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(8f)
                         )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { /* Handle navigation icon press */ }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기", tint = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -68,44 +70,66 @@ fun SurveyListScreen(navController: NavController) {
             ) {
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Add, contentDescription = "등록하기") },
-                    label = { Text("등록하기",
-                        fontSize = 12.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold) },
+                    label = {
+                        Text(
+                            "등록하기",
+                            fontSize = 12.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.AttachMoney, contentDescription = "포인트 상점") },
-                    label = { Text("포인트 상점",
-                        fontSize = 11.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold) },
+                    label = {
+                        Text(
+                            "포인트 상점",
+                            fontSize = 9.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "홈") },
-                    label = { Text("홈",
-                        fontSize = 14.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold) },
+                    label = {
+                        Text(
+                            "홈",
+                            fontSize = 14.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     selected = true,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Person, contentDescription = "마이페이지") },
-                    label = { Text("마이페이지", fontSize = 12.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold) },
+                    label = {
+                        Text(
+                            "마이페이지",
+                            fontSize = 9.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = "설정") },
-                    label = { Text("설정", fontSize = 15.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold) },
+                    label = {
+                        Text(
+                            "설정",
+                            fontSize = 15.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
@@ -118,10 +142,12 @@ fun SurveyListScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Text(sortText,
+                    Text(
+                        sortText,
                         fontSize = 15.sp,
                         fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold)
+                        fontWeight = FontWeight.Bold
+                    )
                     Box {
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
@@ -131,7 +157,8 @@ fun SurveyListScreen(navController: NavController) {
                             onDismissRequest = { expanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("최신순", color = Color.Black) },
+                                text = { Text("최신순",fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold) },
                                 onClick = {
                                     viewModel.sortSurveys(SortType.LATEST)
                                     sortText = "최신순"
@@ -139,7 +166,8 @@ fun SurveyListScreen(navController: NavController) {
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("좋아요 많은 순", color = Color.Black) },
+                                text = { Text("좋아요 많은 순", fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold) },
                                 onClick = {
                                     viewModel.sortSurveys(SortType.MOST_LIKED)
                                     sortText = "좋아요 많은 순"
@@ -147,7 +175,8 @@ fun SurveyListScreen(navController: NavController) {
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("답변 많은 순", color = Color.Black) },
+                                text = { Text("답변 많은 순", fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold) },
                                 onClick = {
                                     viewModel.sortSurveys(SortType.MOST_RESPONDED)
                                     sortText = "답변 많은 순"
@@ -182,4 +211,3 @@ fun SurveyItem(survey: Survey) {
         }
     }
 }
-
