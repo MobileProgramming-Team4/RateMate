@@ -45,9 +45,29 @@ class SurveyRepository {
         dbRef.child(surveyId).removeValue()
     }
 
-    // 설문 업데이트
+    // 설문 업데이트 (질문 목록 유지)
     fun updateSurvey(surveyId: String, updatedFields: Map<String, Any>) {
-        dbRef.child(surveyId).updateChildren(updatedFields)
+        dbRef.child(surveyId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val survey = snapshot.getValue(Survey::class.java)
+                if (survey != null) {
+                    val updatedSurvey = survey.copy(
+                        creatorId = updatedFields["creatorId"] as? String ?: survey.creatorId,
+                        title = updatedFields["title"] as? String ?: survey.title,
+                        content = updatedFields["content"] as? String ?: survey.content,
+                        likes = updatedFields["likes"] as? Int ?: survey.likes,
+                        responses = updatedFields["responses"] as? Int ?: survey.responses,
+                        modifiedDate = dateFormat.format(Date()),
+                        status = updatedFields["status"] as? String ?: survey.status
+                    )
+                    dbRef.child(surveyId).setValue(updatedSurvey)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("SurveyRepository", "Failed to update survey: ${error.message}")
+            }
+        })
     }
 
     // 모든 설문 조회
