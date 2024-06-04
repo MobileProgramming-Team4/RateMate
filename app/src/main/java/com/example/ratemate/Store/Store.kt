@@ -26,29 +26,27 @@ import com.example.ratemate.R
 import com.example.ratemate.data.StoreItem
 import com.example.ratemate.data.User
 import com.example.ratemate.home.getExampleUser
-import com.google.firebase.auth.FirebaseAuth
 import java.util.UUID
 
 @Composable
 fun StoreScreen(navController: NavController) {
     val user = getExampleUser()
     val goods = getExampleGoodsList()
-    val showGoodsList by rememberSaveable { mutableStateOf(goods) }
     user.PurchaseList = listOf(goods[0], goods[2])
+
+
+    val showGoodsList by rememberSaveable { mutableStateOf(goods) }
     var userPurchaseList by rememberSaveable { mutableStateOf(user.PurchaseList) }
     var showPurchased by rememberSaveable { mutableStateOf(false) }
     var points by rememberSaveable { mutableIntStateOf(user.points) }
     val context = LocalContext.current
 
+    //구매 버튼 클릭 시
     val clickBuy: (String) -> Unit = { itemId ->
         val item = showGoodsList.find { it.itemId == itemId }
-        Log.d("상점 화면", "구매 버튼 클릭")
         if (item == null) {
             Log.d("상점 화면", "상품을 찾을 수 없음")
-            Log.d("상점 화면", "itemId: $itemId")
-            for (good in goods) {
-                Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
-            }
+            Toast.makeText(context, "상품을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
 
         }
         else if (points < item.cost) {
@@ -58,11 +56,6 @@ fun StoreScreen(navController: NavController) {
             userPurchaseList = userPurchaseList + item
             user.PurchaseList = userPurchaseList
 
-            Log.d("상점 화면", "상품 구매 후")
-            for (good in showGoodsList) {
-                Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
-
-            }
         }
     }
 
@@ -95,9 +88,9 @@ fun StoreScreen(navController: NavController) {
 fun getExampleGoodsList() : List<StoreItem> {
     val goodsList = mutableListOf<StoreItem>()
 
-    goodsList.add(StoreItem("id1", "item1", 100, "item1"))
-    goodsList.add(StoreItem("id2", "item2", 200, "item2"))
-    goodsList.add(StoreItem("id3", "item3", 300, "item3"))
+    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
+    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item2", 200, "item2"))
+    goodsList.add(StoreItem(UUID.randomUUID().toString(), "item3", 300, "item3"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item4", 400, "item4"))
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item5", 500, "item5"))
 
@@ -180,13 +173,6 @@ fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
                    showPurchased: Boolean, modifier: Modifier, clickBuy: (String) -> Unit
 ){
 
-    LaunchedEffect(Unit) {
-        Log.d("상점 화면", "상품 리스트 렌더링 시작")
-        for (good in goodsList) {
-            Log.d("상점 화면", "good.itemId: ${good.itemName} -> ${good.itemId}")
-        }
-    }
-
     var showGoodsList by rememberSaveable { mutableStateOf(goodsList) }
 
     showGoodsList = if (showPurchased) {
@@ -243,7 +229,6 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit
             confirmButton = {
                 Button(
                     onClick = {
-                        Log.d("상점 화면", "전달 전 : ${goods.itemName} -> ${goods.itemId}")
                         clickBuy(goods.itemId)
                         showDialog = false
                     }

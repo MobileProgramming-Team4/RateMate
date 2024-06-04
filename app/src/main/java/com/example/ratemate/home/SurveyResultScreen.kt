@@ -1,11 +1,13 @@
 package com.example.ratemate.home
 
 import android.graphics.Paint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,10 +32,12 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbDownOffAlt
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.ThumbUpOffAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -59,6 +63,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -66,8 +71,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.window.PopupProperties
 import com.example.ratemate.R
 import com.example.ratemate.data.Comment
 import com.example.ratemate.data.Dislike
@@ -91,9 +99,12 @@ fun SurveyResultScreen() {
     var likes by remember { mutableIntStateOf(surveyResult.likes.count) }
     var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val isMySurvey = user.email == surveyResult.creatorId
+    var showDialog by remember { mutableStateOf(false) }
 
     //해당 유저가 좋아요를 눌렀는지 확인
-    var isLiked by rememberSaveable {
+    var isLiked by remember {
         mutableStateOf(
             surveyResult.likes.usersWhoLiked.find { it == user.userId } != null
         )
@@ -119,7 +130,7 @@ fun SurveyResultScreen() {
     //최신순 버튼 클릭시 실행될 함수
     val clickSortByDate = {
         sortComment = "최신순"
-        commentList = commentList.sortedBy { it.createdDate }
+        commentList = commentList.sortedByDescending { Date(it.createdDate) }
     }
 
     //댓글 추가 함수
@@ -157,6 +168,48 @@ fun SurveyResultScreen() {
         }
     }
 
+    val editSurvey = {
+        /*Todo*/
+        Toast.makeText(context, "설문 수정", Toast.LENGTH_SHORT).show()
+    }
+
+    val removeSurvey = {
+        if (user.email != surveyResult.creatorId) {
+            Toast.makeText(context, "에러 : 권한이 없습니다.", Toast.LENGTH_SHORT).show()
+        } else{
+            showDialog = true
+
+        }
+    }
+
+    if(showDialog){
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("설문 삭제") },
+            text = { Text("설문을 삭제하시겠습니까?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        /*Todo*/
+                        Toast.makeText(context, "설문 삭제", Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog = false }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
+    }
+
+
+
 
     //좋아요 눌렀을 때 동기화
     LaunchedEffect(key1 = likes, key2 = isLiked) {
@@ -179,13 +232,22 @@ fun SurveyResultScreen() {
 
     //전체화면 Column
     Column (
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                onClick = { focusManager.clearFocus() },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
+
     ){
 
 
         //제목, 작성자
-        val modifier1 = Modifier.weight(1f)
-        ShowTitle(title = surveyResult.title, writer = surveyResult.creatorId, modifier = modifier1)
+        val modifier1 = Modifier.height(40.dp)
+        ShowTitle(title = surveyResult.title, writer = surveyResult.creatorId,
+                    isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
+                    , removeSurvey = removeSurvey)
 
         //내용
         val modifier2 = Modifier.weight(7f)
@@ -250,7 +312,7 @@ fun getExampleSurveyResult(): SurveyResultEX {
 
     val surveyResultEx = SurveyResultEX(
         surveyId = UUID.randomUUID().toString(),
-        creatorId = "user3@gmail.com",
+        creatorId = "example@gmail.com",
         title = "제목",
         content = "내용",
         likes = Like(),
@@ -315,9 +377,21 @@ fun getExampleUserChoice() : List<List<Int>>{
 }
 
 @Composable
-fun ShowTitle(title: String, writer: String, modifier: Modifier) {
+fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
+              ,modifier: Modifier, editSurvey : () -> Unit,
+                removeSurvey : () -> Unit
+) {
+
+    var expanded by remember { mutableStateOf(false) }
+    var rowSize by remember { mutableStateOf(Size.Zero) }
+    var iconSize by remember { mutableStateOf(Size.Zero) }
+    var offsetSize by remember { mutableStateOf(Size.Zero) }
+
     Row(modifier = modifier
-        .fillMaxWidth(),
+        .fillMaxWidth()
+        .onGloballyPositioned { layoutCoordinates ->
+            rowSize = layoutCoordinates.size.toSize()
+        },
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -334,12 +408,44 @@ fun ShowTitle(title: String, writer: String, modifier: Modifier) {
 
         //작성자
         Text(
-            text = writer,
+            text = if (isMySurvey) "내 설문" else writer,
             fontSize = 15.sp,
             color = Color.Gray,
             modifier = Modifier
                 .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
         )
+
+        if(isMySurvey){
+
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "edit",
+                modifier = Modifier
+                    .size(height = 40.dp, width = 20.dp)
+                    .clickable { expanded = true }
+                    .onGloballyPositioned { layoutCoordinates ->
+                        iconSize = layoutCoordinates.size.toSize()
+                    }
+                )
+
+            offsetSize = Size(rowSize.width - iconSize.width, 0F)
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(
+                    focusable = true,
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = true
+                ),
+                offset = DpOffset(offsetSize.width.dp, 0.dp)
+            ){
+                DropdownMenuItem(text = { Text("수정") }, onClick = { editSurvey(); expanded = false })
+                DropdownMenuItem(text = { Text("삭제") }, onClick = { removeSurvey(); expanded = false})
+            }
+
+
+        }
 
     }
 }
@@ -369,7 +475,7 @@ fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>,
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .height(30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 //질문
@@ -486,7 +592,7 @@ fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoi
         }
 
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         // 답변 리스트
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -519,9 +625,16 @@ fun ShowCounts(
 
     var expanded by remember { mutableStateOf(false) }
     val selectedText by remember { mutableStateOf("댓글 정렬") }
+    var rowSize by remember { mutableStateOf(Size.Zero) }
+    var boxSize by remember { mutableStateOf(Size.Zero) }
+    var buttonSize by remember { mutableStateOf(Size.Zero) }
+    var offsetSize by remember { mutableStateOf(Size.Zero) }
 
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .onGloballyPositioned { layoutCoordinates ->
+                rowSize = layoutCoordinates.size.toSize()
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -554,13 +667,20 @@ fun ShowCounts(
         //인기순, 최신순 버튼
         Box(
             contentAlignment = Alignment.CenterEnd,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { layoutCoordinates ->
+                    boxSize = layoutCoordinates.size.toSize()
+                }
         ){
             Button(
                 onClick = {expanded = true},
                 modifier = Modifier
                     .background(Color.Gray.copy(alpha = 0.5f))
                     .clip(RoundedCornerShape(6.dp))
+                    .onGloballyPositioned { layoutCoordinates ->
+                        buttonSize = layoutCoordinates.size.toSize()
+                    }
 
                 ,
                 colors = ButtonDefaults.buttonColors(
@@ -574,10 +694,20 @@ fun ShowCounts(
                     modifier = Modifier.safeContentPadding()
                     )
             }
+            offsetSize = Size(rowSize.width - buttonSize.width, 0F)
+            Log.d("설문결과 화면", "rowSize.width : ${rowSize.width}")
+
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(
+                    focusable = true,
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = true
+                ),
+                offset = DpOffset(offsetSize.width.dp, 0.dp)
+
             ){
 
                 DropdownMenuItem(text = { Text(text = "인기순") },
@@ -585,12 +715,10 @@ fun ShowCounts(
 
                 DropdownMenuItem(text = { Text(text = "최신순") },
                     onClick = { clickSortByDate(); expanded = false})
-
-
             }
 
-        }
 
+        }
 
     }
 }
