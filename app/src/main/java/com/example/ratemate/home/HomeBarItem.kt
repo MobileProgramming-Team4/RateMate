@@ -23,12 +23,6 @@ data class HomeBarItem(
 object HomeNavBarItems {
     val HomeBarItems = listOf(
         HomeBarItem(
-            title = "Home",
-            selectIcon = Icons.Default.Home,
-            onSelectedIcon = Icons.Outlined.Home,
-            route = "Home"
-        ),
-        HomeBarItem(
             title = "Question",
             selectIcon = Icons.Default.Search,
             onSelectedIcon = Icons.Outlined.Search,
@@ -39,6 +33,12 @@ object HomeNavBarItems {
             selectIcon = Icons.Default.AccountCircle,
             onSelectedIcon = Icons.Outlined.AccountCircle,
             route = "MyPage"
+        ),
+        HomeBarItem(
+            title = "Home",
+            selectIcon = Icons.Default.Home,
+            onSelectedIcon = Icons.Outlined.Home,
+            route = "Home"
         ),
         HomeBarItem(
             title = "Shop",
