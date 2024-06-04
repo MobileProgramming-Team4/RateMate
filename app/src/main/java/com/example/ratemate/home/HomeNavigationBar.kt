@@ -36,7 +36,7 @@ fun HomeNavigationHost(navController: NavHostController) {
         startDestination = HomeNavRoutes.Home.route
     ){
         composable(HomeNavRoutes.Home.route){
-            SurveyListScreen()
+            SurveyListScreen(navController)
         }
         composable(HomeNavRoutes.Question.route){
             CreateSurveyScreen { title, questions ->

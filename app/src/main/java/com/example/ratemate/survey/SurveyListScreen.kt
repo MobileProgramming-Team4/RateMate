@@ -12,20 +12,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ratemate.data.Survey
 import com.example.ratemate.repository.SurveyRepository
+import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.viewModel.SortType
 import com.example.ratemate.viewModel.SurveyModelFactory
 import com.example.ratemate.viewModel.SurveyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SurveyListScreen() {
+fun SurveyListScreen(navController: NavController) {
     val repository = SurveyRepository()
     val viewModel: SurveyViewModel = viewModel(factory = SurveyModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState()
@@ -39,53 +42,70 @@ fun SurveyListScreen() {
                 title = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Home", color = Color.White)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /* Handle navigation icon press */ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기", tint = Color.White)
+                        IconButton(onClick = { /* Handle navigation icon press */ }) {
+                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기", tint = Color.Black)
+                        }
+                        Spacer(modifier = Modifier.weight(4f))
+                        Text(
+                            "Home",
+                            fontSize = 25.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(8f)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color.White
                 )
             )
         },
         bottomBar = {
             BottomNavigation(
-                contentColor = Color.White
+                backgroundColor = Color.White
             ) {
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Add, contentDescription = "등록하기") },
-                    label = { Text("등록하기") },
+                    label = { Text("등록하기",
+                        fontSize = 12.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.AttachMoney, contentDescription = "포인트 상점") },
-                    label = { Text("포인트 상점") },
+                    label = { Text("포인트 상점",
+                        fontSize = 11.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "홈") },
-                    label = { Text("홈") },
+                    label = { Text("홈",
+                        fontSize = 14.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold) },
                     selected = true,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Person, contentDescription = "마이페이지") },
-                    label = { Text("마이페이지") },
+                    label = { Text("마이페이지", fontSize = 12.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
                 BottomNavigationItem(
                     icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = "설정") },
-                    label = { Text("설정") },
+                    label = { Text("설정", fontSize = 15.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = { /* Handle navigation */ }
                 )
@@ -98,7 +118,10 @@ fun SurveyListScreen() {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Text(sortText, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    Text(sortText,
+                        fontSize = 15.sp,
+                        fontFamily = NotoSansKr,
+                        fontWeight = FontWeight.Bold)
                     Box {
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)

@@ -48,5 +48,8 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
         composable("Home") {
             HomeScreen(navController)
         }
+        composable("SurveyList") {
+            SurveyListScreen(navController)
+        }
     }
 }
