@@ -17,7 +17,6 @@ import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
 import com.example.ratemate.survey.CreateSurveyScreen
-import com.example.ratemate.survey.QuestionItem
 import com.example.ratemate.survey.SurveyListScreen
 
 
@@ -39,10 +38,13 @@ fun HomeNavigationHost(navController: NavHostController) {
             SurveyListScreen(navController)
         }
         composable(HomeNavRoutes.Question.route){
-            CreateSurveyScreen { title, questions ->
-                println("Title: $title")
-                questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
-            }
+            CreateSurveyScreen(
+                onSubmit = { title, questions ->
+                    println("Title: $title")
+                    questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
+                },
+                onNavigateBack = { /* Handle navigation back */ }
+            )
         }
         composable(HomeNavRoutes.MyPage.route){
             MyPageScreen()
