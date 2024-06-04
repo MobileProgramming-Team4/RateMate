@@ -50,6 +50,7 @@ fun StoreScreen(navController: NavController) {
 
         }
         else if (points < item.cost) {
+            Log.d("상점 화면", "id: ${item.itemId} 구매 실패")
             Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
         } else {
             points -= item.cost
