@@ -64,77 +64,7 @@ fun SurveyListScreen(navController: NavController) {
                 )
             )
         },
-        bottomBar = {
-            BottomNavigation(
-                backgroundColor = Color.White
-            ) {
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = Icons.Default.Add, contentDescription = "등록하기") },
-                    label = {
-                        Text(
-                            "등록하기",
-                            fontSize = 12.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    selected = false,
-                    onClick = { /* Handle navigation */ }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = Icons.Default.AttachMoney, contentDescription = "포인트 상점") },
-                    label = {
-                        Text(
-                            "포인트 상점",
-                            fontSize = 9.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    selected = false,
-                    onClick = { /* Handle navigation */ }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "홈") },
-                    label = {
-                        Text(
-                            "홈",
-                            fontSize = 14.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    selected = true,
-                    onClick = { /* Handle navigation */ }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = Icons.Default.Person, contentDescription = "마이페이지") },
-                    label = {
-                        Text(
-                            "마이페이지",
-                            fontSize = 9.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    selected = false,
-                    onClick = { /* Handle navigation */ }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = "설정") },
-                    label = {
-                        Text(
-                            "설정",
-                            fontSize = 15.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    selected = false,
-                    onClick = { /* Handle navigation */ }
-                )
-            }
-        },
+
         content = { paddingValues ->
             Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
                 Row(

@@ -23,16 +23,16 @@ data class HomeBarItem(
 object HomeNavBarItems {
     val HomeBarItems = listOf(
         HomeBarItem(
-            title = "Question",
+            title = "등록하기",
             selectIcon = Icons.Default.Search,
             onSelectedIcon = Icons.Outlined.Search,
             route = "Question"
         ),
         HomeBarItem(
-            title = "My Page",
-            selectIcon = Icons.Default.AccountCircle,
-            onSelectedIcon = Icons.Outlined.AccountCircle,
-            route = "MyPage"
+            title = "포인트 상점",
+            selectIcon = Icons.Default.ShoppingCart,
+            onSelectedIcon = Icons.Outlined.ShoppingCart,
+            route = "Shop"
         ),
         HomeBarItem(
             title = "Home",
@@ -41,10 +41,10 @@ object HomeNavBarItems {
             route = "Home"
         ),
         HomeBarItem(
-            title = "Shop",
-            selectIcon = Icons.Default.ShoppingCart,
-            onSelectedIcon = Icons.Outlined.ShoppingCart,
-            route = "Shop"
+            title = "My Page",
+            selectIcon = Icons.Default.AccountCircle,
+            onSelectedIcon = Icons.Outlined.AccountCircle,
+            route = "MyPage"
         ),
         HomeBarItem(
             title = "Option",
