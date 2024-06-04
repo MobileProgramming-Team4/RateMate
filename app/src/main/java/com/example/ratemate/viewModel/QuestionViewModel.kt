@@ -19,6 +19,7 @@ class QuestionViewModelFactory(private val repository: QuestionRepository) : Vie
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
 class QuestionViewModel(private val repository: QuestionRepository) : ViewModel() {
 
     // 모든 질문 목록을 위한 StateFlow
@@ -26,39 +27,34 @@ class QuestionViewModel(private val repository: QuestionRepository) : ViewModel(
     val questions: StateFlow<List<Question>> = _questions.asStateFlow()
 
     // 특정 질문을 위한 StateFlow
-    private val _question = MutableStateFlow<List<Question>>(emptyList())
-    val question: StateFlow<List<Question>> = _question.asStateFlow()
+    private val _question = MutableStateFlow<Question?>(null)
+    val question: StateFlow<Question?> = _question.asStateFlow()
 
-    init {
-        // 모든 질문 로드
-        loadAllQuestions()
-    }
-
-    private fun loadAllQuestions() {
+    fun loadQuestionsForSurvey(surveyId: String) {
         viewModelScope.launch {
-            repository.getAllQuestions().collect { questions ->
+            repository.getQuestionsForSurvey(surveyId).collect { questions ->
                 _questions.value = questions
             }
         }
     }
 
-    fun getQuestionsByContent(content: String) {
+    fun loadQuestion(surveyId: String, questionId: String) {
         viewModelScope.launch {
-            repository.getQuestionsByContent(content).collect { questions ->
-                _question.value = questions
+            repository.getQuestion(surveyId, questionId).collect { question ->
+                _question.value = question
             }
         }
     }
 
-    fun insertQuestion(question: Question) {
-        repository.insertQuestion(question)
+    fun addQuestion(surveyId: String, question: Question) {
+        repository.addQuestionToSurvey(surveyId, question)
     }
 
-    fun deleteQuestion(questionId: String) {
-        repository.deleteQuestion(questionId)
+    fun updateQuestion(surveyId: String, question: Question) {
+        repository.updateQuestionInSurvey(surveyId, question)
     }
 
-    fun updateQuestion(questionId: String, updatedFields: Map<String, Any>) {
-        repository.updateQuestion(questionId, updatedFields)
+    fun deleteQuestion(surveyId: String, questionId: String) {
+        repository.deleteQuestionFromSurvey(surveyId, questionId)
     }
 }

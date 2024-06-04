@@ -19,6 +19,7 @@ class OptionViewModelFactory(private val repository: OptionRepository) : ViewMod
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
 class OptionViewModel(private val repository: OptionRepository) : ViewModel() {
 
     // 모든 옵션 목록을 위한 StateFlow
@@ -29,32 +30,31 @@ class OptionViewModel(private val repository: OptionRepository) : ViewModel() {
     private val _option = MutableStateFlow<Option?>(null)
     val option: StateFlow<Option?> = _option.asStateFlow()
 
-    init {
-        // 모든 옵션 로드
-        loadAllOptions()
-    }
-
-    private fun loadAllOptions() {
+    fun loadOptionsForQuestion(surveyId: String, questionId: String) {
         viewModelScope.launch {
-            repository.getAllOptions().collect { options ->
+            repository.getOptionsForQuestion(surveyId, questionId).collect { options ->
                 _options.value = options
             }
         }
     }
 
-    fun getOption(optionId: String) {
+    fun loadOption(surveyId: String, questionId: String, optionId: String) {
         viewModelScope.launch {
-            repository.getOption(optionId).collect { option ->
+            repository.getOption(surveyId, questionId, optionId).collect { option ->
                 _option.value = option
             }
         }
     }
 
-    fun setOption(optionId: String, option: Option) {
-        repository.setOption(optionId, option)
+    fun addOption(surveyId: String, questionId: String, option: Option) {
+        repository.addOptionToQuestion(surveyId, questionId, option)
     }
 
-    fun deleteOption(optionId: String) {
-        repository.deleteOption(optionId)
+    fun updateOption(surveyId: String, questionId: String, option: Option) {
+        repository.updateOptionInQuestion(surveyId, questionId, option)
+    }
+
+    fun deleteOption(surveyId: String, questionId: String, optionId: String) {
+        repository.deleteOptionFromQuestion(surveyId, questionId, optionId)
     }
 }
