@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun Option() {
@@ -94,3 +95,10 @@ fun Option() {
         }
     }
 }
+
+//비밀번호 변경 방법
+//val newPassword = "123456"
+//FirebaseAuth.getInstance().currentUser?.updatePassword(newPassword)
+//
+//로그아웃 방법
+//FirebaseAuth.getInstance().signOut()
