@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,10 +43,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ratemate.R
+import com.example.ratemate.data.User
+import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.Purple40
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import java.util.Date
 
 @Composable
 fun RegisterScreen(navController: NavHostController){
@@ -55,6 +64,7 @@ fun RegisterScreen(navController: NavHostController){
     var passwordCheck by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
     var passwordVisibility2 by remember { mutableStateOf(false) }
+    var addUser by rememberSaveable { mutableStateOf(false) }
 
 
     val context = LocalContext.current
@@ -186,11 +196,8 @@ fun RegisterScreen(navController: NavHostController){
                         registerUser(userMail, password) {
                             if (it == "가입 성공") {
                                 Toast.makeText(context, "회원가입 성공 : $userMail", Toast.LENGTH_SHORT).show()
-                                navController.navigate("login?mail=$userMail&pw=$password") {
-                                    popUpTo("Start"){
-                                        inclusive = true
-                                    }
-                                }
+                                addUser = true
+
                             } else {
                                 if (it == "회원가입 실패: The email address is already in use by another account.") {
                                     Toast.makeText(context, "이미 등록된 사용자 입니다.", Toast.LENGTH_SHORT)
@@ -214,6 +221,17 @@ fun RegisterScreen(navController: NavHostController){
                 Text("회원가입")
             }
 
+            if (addUser) {
+                addUser = false
+                AddUserData(email = userMail, password = password)
+
+                navController.navigate("login?mail=$userMail&pw=$password") {
+                    popUpTo("Start"){
+                        inclusive = true
+                    }
+                }
+            }
+
 
         }
     }
@@ -229,4 +247,29 @@ fun registerUser(email: String, password: String, onResult: (String) -> Unit) {
                 onResult("회원가입 실패: ${task.exception?.message ?: "Unknown error"}")
             }
         }
+}
+
+
+@Composable
+fun AddUserData(email: String, password: String) {
+    loginUser(email, password){}
+    val madeUser = FirebaseAuth.getInstance().currentUser
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+
+    val insertUser : User = User(
+        userId = madeUser?.uid.toString(),
+        email = madeUser?.email.toString(),
+        points = 0,
+        createdDate = Date().toString(),
+        modifiedDate = Date().toString(),
+        status = "active",
+        profileImage = R.drawable.profile.toString(),
+        surveysCreated = mutableListOf(),
+        surveysParticipated = mutableListOf(),
+        PurchaseList = mutableListOf()
+    )
+
+    userViewModel.addUser(insertUser)
+    FirebaseAuth.getInstance().signOut()
+
 }
