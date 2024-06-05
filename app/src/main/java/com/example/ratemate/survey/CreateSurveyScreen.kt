@@ -23,7 +23,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,14 +47,6 @@ import com.example.ratemate.ui.theme.NotoSansKr
 fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigateBack: () -> Unit) {
     var surveyTitle by remember { mutableStateOf("") }
     val questionsList = remember { mutableStateListOf<QuestionItem>() }
-
-    val isSubmitButtonEnabled by remember {
-        derivedStateOf {
-            surveyTitle.isNotBlank() && questionsList.isNotEmpty() && questionsList.all { question ->
-                question.question.isNotBlank() && question.answers.isNotEmpty() && question.answers.all { it.isNotBlank() }
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -86,9 +77,6 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
                         val updatedAnswers = questionItem.answers.toMutableList()
                         updatedAnswers.add("")
                         questionsList[index] = questionItem.copy(answers = updatedAnswers)
-                    },
-                    onRemove = {
-                        questionsList.removeAt(index)
                     },
                     onRemoveAnswer = { answerIndex ->
                         val updatedAnswers = questionItem.answers.toMutableList()
@@ -138,11 +126,8 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
                 onClick = { onSubmit(surveyTitle, questionsList) },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 0.dp),
-                enabled = isSubmitButtonEnabled,
                 colors = ButtonDefaults.buttonColors(
-                    if (isSubmitButtonEnabled) colorResource(id = R.color.main_blue) else colorResource(
-                        id = R.color.gray_400
-                    )
+                    colorResource(id = R.color.main_blue)
                 ),
             ) {
                 Text(
@@ -150,20 +135,18 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
                     fontFamily = NotoSansKr,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSubmitButtonEnabled) colorResource(id = R.color.white) else colorResource(
-                        id = R.color.gray_500
-                    )
+                    color = colorResource(id = R.color.white)
                 )
             }
         }
     }
 }
 
+
 @Composable
 fun QuestionEditor(
     question: QuestionItem,
     onAddAnswer: () -> Unit,
-    onRemove: () -> Unit,
     onRemoveAnswer: (Int) -> Unit
 ) {
     var questionText by remember { mutableStateOf(question.question) }
@@ -243,9 +226,6 @@ fun QuestionEditor(
             contentPadding = PaddingValues(vertical = 0.dp)
         ) {
             Text("옵션 추가")
-        }
-        IconButton(onClick = onRemove, modifier = Modifier.align(Alignment.End)) {
-            Icon(Icons.Default.Delete, contentDescription = "질문 삭제")
         }
         Divider(modifier = Modifier.padding(vertical = 8.dp))
     }
