@@ -45,16 +45,19 @@ class UserRepository() {
 
     // 특정 사용자 조회
     fun getUser(userId: String): Flow<User?> = callbackFlow {
-        val listener = dbRef.child(userId).addValueEventListener(object : ValueEventListener {
+        val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(User::class.java)
-                trySend(user)
+                trySend(user).isSuccess
             }
 
             override fun onCancelled(error: DatabaseError) {
                 close(error.toException())
             }
-        })
+        }
+        dbRef.child(userId).addListenerForSingleValueEvent(listener)
         awaitClose { dbRef.child(userId).removeEventListener(listener) }
     }
+
+
 }

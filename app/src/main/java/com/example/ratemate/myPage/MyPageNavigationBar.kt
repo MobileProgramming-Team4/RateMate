@@ -24,7 +24,7 @@ sealed class MyPageNavRoutes (val route: String) {
 }
 
 @Composable
-fun NavigationHost(navController: NavHostController) {
+fun MyPageNavigationHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = MyPageNavRoutes.Quest.route
@@ -65,14 +65,9 @@ fun MyPageNavigationBar(navController: NavController) {
                     }
                 },
                 icon = {
-                    Icon(
-                        imageVector = if (currentRoute == navItem.route) navItem.onSelectedIcon else navItem.selectIcon,
-                        contentDescription = navItem.title
-                    )
-                },
-                label = {
                     Text(text = navItem.title)
-                }
+                },
+                label = null
             )
         }
     }
