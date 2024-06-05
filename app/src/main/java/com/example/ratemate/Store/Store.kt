@@ -21,63 +21,140 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.R
 import com.example.ratemate.data.StoreItem
 import com.example.ratemate.data.User
-import com.example.ratemate.home.getExampleUser
+import com.example.ratemate.repository.StoreItemRepository
+import com.example.ratemate.repository.UserRepository
+import com.example.ratemate.viewModel.StoreItemViewModel
+import com.example.ratemate.viewModel.StoreItemViewModelFactory
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 import java.util.UUID
 
 @Composable
 fun StoreScreen(navController: NavController) {
-    val user = getExampleUser()
-    val goods = getExampleGoodsList()
-    user.PurchaseList = listOf(goods[0], goods[2])
 
+    val auth = FirebaseAuth.getInstance()
+    val uid = auth.currentUser?.uid
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    userViewModel.getUser(uid!!)
+    val user by userViewModel.user.collectAsState(initial = null)
 
-    val showGoodsList by rememberSaveable { mutableStateOf(goods) }
-    var userPurchaseList by rememberSaveable { mutableStateOf(user.PurchaseList) }
-    var showPurchased by rememberSaveable { mutableStateOf(false) }
-    var points by rememberSaveable { mutableIntStateOf(user.points) }
-    val context = LocalContext.current
+    Log.d("상점 화면", "유저 정보: $user")
 
-    //구매 버튼 클릭 시
-    val clickBuy: (String) -> Unit = { itemId ->
-        val item = showGoodsList.find { it.itemId == itemId }
-        if (item == null) {
-            Log.d("상점 화면", "상품을 찾을 수 없음")
-            Toast.makeText(context, "상품을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+    val storeItemViewModel : StoreItemViewModel = viewModel(factory = StoreItemViewModelFactory(
+        StoreItemRepository()
+    ))
 
-        }
-        else if (points < item.cost) {
-            Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
-        } else {
-            points -= item.cost
-            userPurchaseList = userPurchaseList + item
-            user.PurchaseList = userPurchaseList
+    //테스트용 -> 상품 5개 추가
+//    LaunchedEffect(Unit) {
+//        val goodsList = mutableListOf<StoreItem>()
+//
+//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
+//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item2", 200, "item2"))
+//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item3", 300, "item3"))
+//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item4", 400, "item4"))
+//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item5", 500, "item5"))
+//
+//        for (item in goodsList) {
+//            storeItemViewModel.addStoreItem(item)
+//        }
+//
+//    }
 
-        }
+    val goods by storeItemViewModel.storeItems.collectAsState(initial = emptyList())
+
+    var showGoodsList by rememberSaveable { mutableStateOf(goods) }
+
+    LaunchedEffect(key1 = goods) {
+        showGoodsList = goods
     }
 
+    showGoodsList.sortedBy { it.itemName }
+
+
+    //테스트용 -> 포인트 1000점, 구매목록 초기화
+//    LaunchedEffect(Unit) {
+//        userViewModel.updateUser(uid, mapOf("points" to 1000))
+//        val examplePurchaseList = mutableListOf<StoreItem>()
+//        userViewModel.updateUser(uid, mapOf("PurchaseList" to examplePurchaseList))
+//    }
 
 
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    user?.let {
 
-        //유저정보
-        val modifier1 = Modifier.weight(50f)
-        StoreUserInfo(user = user, points = points ,modifier = modifier1)
+        var userPurchaseList by rememberSaveable {
+            if (user != null) {
+                mutableStateOf(user!!.PurchaseList)
+            } else {
+                mutableStateOf(emptyList())
+            }
+        }
 
-        //체크박스
-        Divider()
-        val modifier2 = Modifier.height(50.dp)
-        StoreCheckBox(showPurchased, modifier = modifier2, clickCheckBox = { showPurchased = !showPurchased })
+        var showPurchased by rememberSaveable { mutableStateOf(false) }
+        var points by rememberSaveable {
+            if (user != null) {
+                mutableIntStateOf(user!!.points)
+            } else {
+                mutableIntStateOf(0)
+            }
+        }
+        val context = LocalContext.current
 
-        //상품 리스트
-        val modifier3 = Modifier.weight(50f)
-        StoreGoodsList(showGoodsList, userPurchaseList ,showPurchased, modifier = modifier3, clickBuy = clickBuy)
+        //구매 버튼 클릭 시
+        val clickBuy: (String) -> Unit = { itemId ->
+            val item = showGoodsList.find { it.itemId == itemId }
+            if (item == null) {
+                Log.d("상점 화면", "상품을 찾을 수 없음")
+                Toast.makeText(context, "상품을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+
+            }
+            else if (points < item.cost) {
+                Log.d("상점 화면", "id: ${item.itemId} 구매 실패")
+                Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                points -= item.cost
+                userPurchaseList = userPurchaseList + item
+                user!!.PurchaseList = userPurchaseList
+
+            }
+        }
+
+        LaunchedEffect(key1 = userPurchaseList) {
+            userViewModel.updateUser(uid, mapOf("PurchaseList" to userPurchaseList))
+        }
+
+        LaunchedEffect(key1 = points) {
+            userViewModel.updateUser(uid, mapOf("points" to points))
+        }
+
+
+
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+
+            //유저정보
+            val modifier1 = Modifier.weight(50f)
+            StoreUserInfo(user = user!!, points = points ,modifier = modifier1)
+
+            //체크박스
+            Divider()
+            val modifier2 = Modifier.height(50.dp)
+            StoreCheckBox(showPurchased, modifier = modifier2, clickCheckBox = { showPurchased = !showPurchased })
+
+            //상품 리스트
+            val modifier3 = Modifier.weight(50f)
+            StoreGoodsList(showGoodsList, userPurchaseList ,showPurchased, modifier = modifier3, clickBuy = clickBuy)
+
+        }
+
 
     }
 }
