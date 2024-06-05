@@ -109,7 +109,7 @@ fun SurveyResultScreen(){
 
 
     //설문 정보 가져오기
-    val surveyId = "-Nzc07ud7zP5NTIllH7q" //전달 받아야 하는 값
+    val surveyId = "-NzcWJQfeNW86cmM1th6" //전달 받아야 하는 값
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
