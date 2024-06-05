@@ -11,29 +11,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 data class MyPageBarItem(
     val title: String,
-    val selectIcon: ImageVector,
-    val onSelectedIcon: ImageVector,
     val route: String
 )
 
 object MyPageNavBarItems {
     val MyPageBarItems = listOf(
         MyPageBarItem(
-            title = "설문",
-            selectIcon = Icons.Default.Search,
-            onSelectedIcon = Icons.Outlined.Search,
+            title = "내 설문",
             route = "Quest"
         ),
         MyPageBarItem(
-            title = "답변",
-            selectIcon = Icons.Default.CheckCircle,
-            onSelectedIcon = Icons.Outlined.CheckCircle,
+            title = "내 답변",
             route = "Answer"
         ),
         MyPageBarItem(
             title = "포인트 내역",
-            selectIcon = Icons.Default.ShoppingCart,
-            onSelectedIcon = Icons.Outlined.ShoppingCart,
             route = "Point"
         )
 
