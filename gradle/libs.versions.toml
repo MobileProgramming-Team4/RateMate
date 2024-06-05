@@ -26,6 +26,7 @@ ui = "1.7.0-beta02"
 uiToolingPreview = "1.7.0-beta02"
 materialVersion = "1.7.0-beta02"
 navigationComposeVersion = "2.8.0-beta02"
+accompanistSvg = "0.24.7-alpha"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +61,7 @@ ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 material = { group = "androidx.compose.material", name = "material", version.ref = "materialVersion" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeVersion" }
+accompanist-svg = { group = "com.google.accompanist", name = "accompanist-svg", version.ref = "accompanistSvg" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
