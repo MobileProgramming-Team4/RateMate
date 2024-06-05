@@ -7,9 +7,9 @@ data class Comment(
     var userId: String = "",
     var text: String = "",
     var createdDate: String = "",
-    var profileImage: Painter? = null,
+    var profileImage: String = "",
     var like: Like = Like(),
     var dislike : Dislike = Dislike()
 ) {
-    constructor() : this("", "", "", "", null, Like() , Dislike())
+    constructor() : this("", "", "", "", "", Like(), Dislike())
 }

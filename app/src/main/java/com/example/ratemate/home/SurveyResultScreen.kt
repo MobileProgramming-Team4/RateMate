@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,25 +77,80 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ratemate.R
 import com.example.ratemate.data.Comment
 import com.example.ratemate.data.Dislike
 import com.example.ratemate.data.Like
+import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.data.User
+import com.example.ratemate.repository.CommentRepository
+import com.example.ratemate.repository.SurveyV2Repository
+import com.example.ratemate.repository.UserRepository
+import com.example.ratemate.viewModel.CommentViewModel
+import com.example.ratemate.viewModel.CommentViewModelFactory
+import com.example.ratemate.viewModel.SurveyV2ViewModel
+import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
 
 @Composable
-fun SurveyResultScreen() {
+fun SurveyResultScreen(){
+    //유저 정보 가져오기
+    val auth = FirebaseAuth.getInstance()
+    val userUid = auth.currentUser?.uid
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    userViewModel.getUser(userUid!!)
+    val user by userViewModel.user.collectAsState(initial = null)
 
-    val surveyResult = getExampleSurveyResult()
-    val user = getExampleUser()
+
+    //설문 정보 가져오기
+    val surveyId = "-Nzc07ud7zP5NTIllH7q" //전달 받아야 하는 값
+    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
+        SurveyV2Repository()
+    ))
+    surveyV2ViewModel.getSurvey(surveyId)
+    val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = null)
+
+
+
+    //테스트용 -> 예시 설문 추가
+//    var addSurvey by remember { mutableStateOf(false) }
+//    LaunchedEffect(Unit) {
+//        Log.d("설문 추가", "LaunchedEffect 실행")
+//        addSurvey = true
+//    }
+//    if(addSurvey){
+//        addSurvey = false
+//        Log.d("설문 추가", "if 문 실행")
+//        AddExampleSurveyV2()
+//    }
+
+    if (user != null && surveyResult != null) {
+        ShowSurveyResultScreen(user!!, surveyResult!!)
+    }
+    else {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Loading...")
+        }
+    }
+}
+
+@Composable
+fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
+
     val content = getExampleResultContent()
     val userChoice = getExampleUserChoice()
 
-    var commentList by remember { mutableStateOf(surveyResult.comments.values.toList()) }
+    var commentList by remember { mutableStateOf(surveyResult.comments.toMutableList()) }
     var sortComment by remember { mutableStateOf("인기순") }
     var likes by remember { mutableIntStateOf(surveyResult.likes.count) }
     var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
@@ -103,11 +159,14 @@ fun SurveyResultScreen() {
     val isMySurvey = user.email == surveyResult.creatorId
     var showDialog by remember { mutableStateOf(false) }
 
+    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
+        SurveyV2Repository()
+    ))
+
+
     //해당 유저가 좋아요를 눌렀는지 확인
     var isLiked by remember {
-        mutableStateOf(
-            surveyResult.likes.usersWhoLiked.find { it == user.userId } != null
-        )
+        mutableStateOf(surveyResult.likes.usersWhoLiked.find { it == user.userId } != null)
     }
 
     //좋아요를 눌렀을때 실행될 함수
@@ -124,30 +183,37 @@ fun SurveyResultScreen() {
     //인기순 버튼 클릭시 실행될 함수
     val clickSortByLikes = {
         sortComment = "인기순"
-        commentList = commentList.sortedByDescending { it.like.count - it.dislike.count }
+        commentList = commentList.sortedByDescending { it.like.count - it.dislike.count }.toMutableList()
     }
 
     //최신순 버튼 클릭시 실행될 함수
     val clickSortByDate = {
         sortComment = "최신순"
-        commentList = commentList.sortedByDescending { Date(it.createdDate) }
+        commentList = commentList.sortedByDescending { Date(it.createdDate) }.toMutableList()
     }
 
     //댓글 추가 함수
     @Composable
     fun addComment(comment: String) {
-        val calendar = Calendar.getInstance()
         val newComment = Comment(
             commentId = UUID.randomUUID().toString(),
             userId = user.email,
             text = comment,
-            createdDate = calendar.time.toString(),
-            profileImage = painterResource(id = user.profileImage.toInt()),
+            createdDate = Date().toString(),
+            profileImage = user.profileImage,
             like = Like(),
             dislike = Dislike()
         )
 
-        commentList = commentList + newComment
+        //댓글 추가시 유저 포인트 1 증가
+        val auth = FirebaseAuth.getInstance()
+        val userUid = auth.currentUser?.uid
+        val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
+
+        surveyResult.comments.add(newComment)
+        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to surveyResult.comments))
+        commentList = surveyResult.comments.toMutableList()
 
         if (sortComment == "인기순") {
             clickSortByLikes()
@@ -182,6 +248,7 @@ fun SurveyResultScreen() {
         }
     }
 
+    //설문 수정 및 삭제
     if(showDialog){
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -208,24 +275,40 @@ fun SurveyResultScreen() {
         )
     }
 
+    var showLog = false
+    //좋아요, 싫어요 버튼 클릭시 실행될 함수
+    val onClickLikeDislike = {
+        showLog = true
+
+    }
+    if (showLog) {
+        showLog = false
+        Log.d("댓글", "리스트 : $commentList")
+    }
+
 
 
 
     //좋아요 눌렀을 때 동기화
     LaunchedEffect(key1 = likes, key2 = isLiked) {
         if (isLiked) {
-            surveyResult.likes.usersWhoLiked.add(user.userId)
+            surveyResult.likes.usersWhoLiked.find { it == user.userId } ?: surveyResult.likes.usersWhoLiked.add(user.userId)
             surveyResult.likes.count = likes
         } else {
             surveyResult.likes.usersWhoLiked.remove(user.userId)
             surveyResult.likes.count = likes
         }
+
+        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("likes" to surveyResult.likes))
+
     }
 
 
     //댓글 수 동기화
     LaunchedEffect(key1 = commentList) {
         numberOfComment = commentList.size
+        Log.d("댓글", "댓글 수 : $numberOfComment")
+        Log.d("댓글", "댓글 리스트 : $commentList")
 
     }
 
@@ -240,14 +323,14 @@ fun SurveyResultScreen() {
                 interactionSource = remember { MutableInteractionSource() }
             ),
 
-    ){
+        ){
 
 
         //제목, 작성자
         val modifier1 = Modifier.height(40.dp)
         ShowTitle(title = surveyResult.title, writer = surveyResult.creatorId,
-                    isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
-                    , removeSurvey = removeSurvey)
+            isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
+            , removeSurvey = removeSurvey)
 
         //내용
         val modifier2 = Modifier.weight(7f)
@@ -263,7 +346,7 @@ fun SurveyResultScreen() {
         //댓글 리스트
         Divider()
         val modifier5 = Modifier.weight(5f)
-        ShowComments(user, comments = commentList,
+        ShowComments(user, comments = commentList, surveyResult = surveyResult,
             modifier = modifier5)
 
         //댓글 입력창
@@ -276,15 +359,15 @@ fun SurveyResultScreen() {
 }
 
 @Composable
-fun getExampleSurveyResult(): SurveyResultEX {
+fun AddExampleSurveyV2(){
+    Log.d("설문 추가", "설문 추가 시작")
     val calendar1 = Calendar.getInstance()
     calendar1.set(2022, 10, 1)
     val commentEX1 = Comment(
-        commentId = UUID.randomUUID().toString(),
         userId = "user1@gmail.com",
         text = "내용1",
         createdDate = calendar1.time.toString(),
-        profileImage = painterResource(id = R.drawable.image1),
+        profileImage = R.drawable.image1.toString(),
         like = Like(),
         dislike = Dislike()
     )
@@ -296,11 +379,10 @@ fun getExampleSurveyResult(): SurveyResultEX {
     val calendar2 = Calendar.getInstance()
     calendar2.set(2023, 10, 2)
     val commentEX2 = Comment(
-        commentId = UUID.randomUUID().toString(),
         userId = "user2@gmail.com",
         text = "내용2",
         createdDate = calendar2.time.toString(),
-        profileImage = painterResource(id = R.drawable.image2),
+        profileImage = R.drawable.image2.toString(),
         like = Like(),
         dislike = Dislike()
     )
@@ -310,48 +392,32 @@ fun getExampleSurveyResult(): SurveyResultEX {
     commentEX2.like.count = 5
     commentEX2.dislike.count = 10
 
-    val surveyResultEx = SurveyResultEX(
-        surveyId = UUID.randomUUID().toString(),
+    val SurveyV2 = SurveyV2(
         creatorId = "example@gmail.com",
         title = "제목",
         content = "내용",
-        likes = Like(),
+        likes = Like(
+            count = 5,
+            usersWhoLiked = mutableListOf("1", "2", "3", "4", "5")
+        ),
+        numOfComments = 2,
         createdDate = Date().toString(),
         modifiedDate = Date().toString(),
         status = "active",
-        questions = emptyMap(),
-        responses = emptyMap(),
-        comments = mapOf(
-            commentEX1.commentId to commentEX1,
-            commentEX2.commentId to commentEX2
-        )
+        questions = mutableListOf(),
+        responses = mutableListOf(),
+        comments = mutableListOf( commentEX1, commentEX2)
+
     )
 
-    surveyResultEx.likes.usersWhoLiked = mutableListOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
-    surveyResultEx.likes.count = 10
+    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
+        SurveyV2Repository()
+    ))
+    surveyV2ViewModel.addSurvey(SurveyV2)
 
 
-    return surveyResultEx
 }
 
-@Composable
-fun getExampleUser(): User {
-    val user = User()
-    val me = FirebaseAuth.getInstance().currentUser
-
-    user.userId = me?.uid ?: "null"
-    user.email = me?.email ?: "null"
-    user.points = 1000
-    user.createdDate = Date().toString()
-    user.modifiedDate = Date().toString()
-    user.status = "active"
-    user.profileImage = R.drawable.profile.toString()
-    user.surveysCreated = mutableListOf("1", "2", "3")
-    user.surveysParticipated = mutableListOf("4", "5", "6")
-    user.PurchaseList = mutableListOf()
-
-    return user
-}
 
 @Composable
 fun getExampleResultContent() : List<ResultContent>{
@@ -702,7 +768,6 @@ fun ShowCounts(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 properties = PopupProperties(
-                    focusable = true,
                     dismissOnBackPress = true,
                     dismissOnClickOutside = true
                 ),
@@ -725,7 +790,9 @@ fun ShowCounts(
 
 
 @Composable
-fun ShowComments(user : User, comments: List<Comment>, modifier: Modifier) {
+fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2 ,modifier: Modifier){
+    var saveLikeDislike by remember { mutableStateOf("None") }
+    var sendInfo by remember { mutableStateOf(true) }
     LazyColumn(
         modifier = modifier
     ) {
@@ -755,16 +822,36 @@ fun ShowComments(user : User, comments: List<Comment>, modifier: Modifier) {
                 comment.like.count = like
                 comment.dislike.count = dislike
                 if (isLiked) {
-                    comment.like.usersWhoLiked.add(user.userId)
+                    comment.like.usersWhoLiked.find { it == user.userId } ?: run {
+                        comment.like.usersWhoLiked.add(user.userId)
+                    }
+                    saveLikeDislike = "Like"
                 } else {
                     comment.like.usersWhoLiked.remove(user.userId)
+                    saveLikeDislike = "None"
                 }
 
                 if (isDisliked) {
-                    comment.dislike.usersWhoDisliked.add(user.userId)
+                    comment.dislike.usersWhoDisliked.find { it == user.userId } ?: run {
+                        comment.dislike.usersWhoDisliked.add(user.userId)
+                    }
+                    saveLikeDislike = "Dislike"
                 } else {
                     comment.dislike.usersWhoDisliked.remove(user.userId)
+                    saveLikeDislike = "None"
                 }
+
+                sendInfo = true
+
+            }
+
+            if (sendInfo) {
+                sendInfo = false
+                val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
+                    SurveyV2Repository()
+                ))
+                surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to surveyResult.comments))
+
             }
 
             //좋아요, 싫어요 버튼 클릭시 실행될 함수
@@ -812,6 +899,7 @@ fun ShowComments(user : User, comments: List<Comment>, modifier: Modifier) {
 
         }
     }
+
 }
 
 @Composable
@@ -832,7 +920,7 @@ fun ShowComment(
         ) {
             // 프로필 이미지
             Image(
-                painter = comment.profileImage!!,
+                painter = painterResource(id = comment.profileImage.toInt()),
                 contentDescription = "",
                 modifier = Modifier
                     .size(30.dp)
