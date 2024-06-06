@@ -82,6 +82,8 @@ import com.example.ratemate.R
 import com.example.ratemate.data.Comment
 import com.example.ratemate.data.Dislike
 import com.example.ratemate.data.Like
+import com.example.ratemate.data.QnA
+import com.example.ratemate.data.Response
 import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.data.User
 import com.example.ratemate.repository.CommentRepository
@@ -109,7 +111,7 @@ fun SurveyResultScreen(){
 
 
     //설문 정보 가져오기
-    val surveyId = "-NzcWJQfeNW86cmM1th6" //전달 받아야 하는 값
+    val surveyId = "-NzhaHXBUwoNufiXDouM" //전달 받아야 하는 값
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
@@ -147,8 +149,8 @@ fun SurveyResultScreen(){
 @Composable
 fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
 
-    val content = getExampleResultContent()
-    val userChoice = getExampleUserChoice()
+    val content = surveyResult.qnA
+    val userChoice = surveyResult.response.find { it.userId == user.userId }?.answer ?: listOf()
 
     var commentList by remember { mutableStateOf(surveyResult.comments.toMutableList()) }
     var sortComment by remember { mutableStateOf("인기순") }
@@ -183,7 +185,7 @@ fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
     //인기순 버튼 클릭시 실행될 함수
     val clickSortByLikes = {
         sortComment = "인기순"
-        commentList = commentList.sortedByDescending { it.like.count - it.dislike.count }.toMutableList()
+        commentList = commentList.sortedByDescending { it.like.count }.toMutableList()
     }
 
     //최신순 버튼 클릭시 실행될 함수
@@ -287,8 +289,6 @@ fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
     }
 
 
-
-
     //좋아요 눌렀을 때 동기화
     LaunchedEffect(key1 = likes, key2 = isLiked) {
         if (isLiked) {
@@ -303,13 +303,16 @@ fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
 
     }
 
-
     //댓글 수 동기화
     LaunchedEffect(key1 = commentList) {
         numberOfComment = commentList.size
         Log.d("댓글", "댓글 수 : $numberOfComment")
         Log.d("댓글", "댓글 리스트 : $commentList")
 
+    }
+
+    LaunchedEffect(Unit) {
+        clickSortByLikes()
     }
 
 
@@ -404,17 +407,77 @@ fun AddExampleSurveyV2(){
         createdDate = Date().toString(),
         modifiedDate = Date().toString(),
         status = "active",
-        questions = mutableListOf(),
-        responses = mutableListOf(),
+        qnA = mutableListOf(),
+        response = mutableListOf(),
         comments = mutableListOf( commentEX1, commentEX2)
 
     )
+
+    val qnA1 = QnA(
+        order = 0,
+        question = "질문1",
+        answerList = mutableListOf("답변1", "답변2", "답변3"),
+        answerCountList = mutableListOf(10, 20, 30),
+        questionType = "single"
+    )
+
+    val qnA2 = QnA(
+        order = 1,
+        question = "질문2",
+        answerList = mutableListOf("답변2_1", "답변2_2", "답변2_3", "답변2_4"),
+        answerCountList = mutableListOf(30, 10, 40, 50),
+        questionType = "single"
+    )
+
+    val qnA3 = QnA(
+        order = 2,
+        question = "질문3",
+        answerList = mutableListOf("답변3_1", "답변3_2", "답변3_3", "답변3_4", "답변3_5"),
+        answerCountList = mutableListOf(100, 20, 30, 0, 50),
+        questionType = "multiple"
+    )
+
+    val qnA4 = QnA(
+        order = 3,
+        question = "질문4",
+        answerList = mutableListOf("답변4_1", "답변4_2"),
+        answerCountList = mutableListOf(30, 20),
+        questionType = "single"
+    )
+
+    SurveyV2.qnA.add(qnA1)
+    SurveyV2.qnA.add(qnA2)
+    SurveyV2.qnA.add(qnA3)
+    SurveyV2.qnA.add(qnA4)
+
+
+    val Response1 = Response(
+        userId = "1",
+        answer = mutableListOf(listOf(0), listOf(1), listOf(1, 3), listOf(1))
+
+        )
+
+    val Response2 = Response(
+        userId = "2",
+        answer = mutableListOf(listOf(1), listOf(0), listOf(2, 3), listOf(0))
+
+        )
+
+    val Response3 = Response(
+        userId = "8ByCzSY8UqRTqfViU3luhJdPZKB2",
+        answer = mutableListOf(listOf(2), listOf(1), listOf(2, 3), listOf(1))
+
+        )
+
+    SurveyV2.response.add(Response1)
+    SurveyV2.response.add(Response2)
+    SurveyV2.response.add(Response3)
+
 
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
     surveyV2ViewModel.addSurvey(SurveyV2)
-
 
 }
 
@@ -517,7 +580,7 @@ fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
 }
 
 @Composable
-fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>, modifier : Modifier){
+fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier : Modifier){
 
     val contentSize = content.size
     var currentContent by rememberSaveable { mutableIntStateOf(0) }
@@ -606,14 +669,14 @@ fun ShowMainContent(content : List<ResultContent>, userChoice : List<List<Int>>,
 }
 
 @Composable
-fun ShowResult(result : ResultContent, userChoice : List<Int>, modifier: Modifier){
+fun ShowResult(result : QnA, userChoice : List<Int>, modifier: Modifier){
     Column(
         modifier = modifier
             .fillMaxWidth()
     ){
 
         //설문 결과 차트
-        SelectionPercentageChart(answers = result.answer,choices = result.answerCount, userChoices = userChoice )
+        SelectionPercentageChart(answers = result.answerList,choices = result.answerCountList, userChoices = userChoice )
 
     }
 }
