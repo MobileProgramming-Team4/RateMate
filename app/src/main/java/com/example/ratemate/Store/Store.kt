@@ -71,10 +71,10 @@ fun StoreScreen(navController: NavController) {
     var showGoodsList by rememberSaveable { mutableStateOf(goods) }
 
     LaunchedEffect(key1 = goods) {
-        showGoodsList = goods
+        showGoodsList = goods.sortedBy { it.itemName }
     }
 
-    showGoodsList.sortedBy { it.itemName }
+
 
 
     //테스트용 -> 포인트 1000점, 구매목록 초기화
