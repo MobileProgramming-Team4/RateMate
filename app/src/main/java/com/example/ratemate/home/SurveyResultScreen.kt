@@ -215,6 +215,8 @@ fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
 
         surveyResult.comments.add(newComment)
         surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to surveyResult.comments))
+        surveyResult.numOfComments += 1
+        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("numOfComments" to surveyResult.numOfComments))
         commentList = surveyResult.comments.toMutableList()
 
         if (sortComment == "인기순") {
