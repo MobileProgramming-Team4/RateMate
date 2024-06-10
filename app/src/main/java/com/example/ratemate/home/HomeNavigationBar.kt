@@ -1,5 +1,6 @@
 package com.example.ratemate.home
 
+import SurveyListScreen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -17,7 +18,6 @@ import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
 import com.example.ratemate.survey.CreateSurveyScreen
-import com.example.ratemate.survey.SurveyListScreen
 
 
 sealed class HomeNavRoutes (val route: String) {
