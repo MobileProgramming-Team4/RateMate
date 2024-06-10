@@ -55,7 +55,7 @@ fun HomeScreen(navController: NavHostController) {
 //            }
 
             // HomeNavigationHost should be placed in the content slot
-            HomeNavigationHost(navController = HomenavController)
+            HomeNavigationHost(navController = HomenavController, startnavController = navController )
         }
 
     }
