@@ -1,102 +1,88 @@
 package com.example.ratemate.dummy
 
 import android.util.Log
-import com.example.ratemate.data.Option
-import com.example.ratemate.data.Question
-import com.example.ratemate.data.Survey
+import com.example.ratemate.data.*
 import com.google.firebase.database.FirebaseDatabase
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DummyDataGenerator {
+class DummyDataGeneratorV2 {
 
     private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("surveys")
+    private val dbRef = database.getReference("surveysV2")
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    fun generateDummyData() {
-        val survey1 = Survey(
-            creatorId = "user1",
-            title = "Favorite Food Survey",
-            content = "Tell us about your favorite food.",
-            likes = 10,
-            responses = 5,
-            createdDate = dateFormat.format(Date()),
-            modifiedDate = dateFormat.format(Date()),
-            status = "Active",
-            questions = mutableListOf(
-                Question(
-                    content = "What is your favorite cuisine?",
-                    options = mutableListOf(
-                        Option(text = "Italian", order = 1),
-                        Option(text = "Japanese", order = 2)
-                    ),
-                    order = 1
+    fun generateDummyDataV2() {
+        val surveys = mutableListOf(
+            SurveyV2(
+                surveyId = "106",
+                creatorId = "creator106",
+                title = "Favorite Streaming Services Survey",
+                content = "Which streaming services do you use the most and why?",
+                likes = Like(count = 20),
+                numOfComments = 5,
+                createdDate = dateFormat.format(Date()),
+                modifiedDate = dateFormat.format(Date()),
+                status = "Active",
+                qnA = mutableListOf(
+                    QnA(order = 1, question = "What is your most used streaming service?", answerList = listOf("Netflix", "Amazon Prime", "Hulu", "Disney+", "Other"), answerCountList = listOf(10, 5, 3, 2, 1), questionType = "single")
                 ),
-                Question(
-                    content = "How often do you eat out?",
-                    options = mutableListOf(
-                        Option(text = "Daily", order = 1),
-                        Option(text = "Weekly", order = 2),
-                        Option(text = "Monthly", order = 3)
-                    ),
-                    order = 2
+                response = mutableListOf(
+                    Response(userId = "user201", answer = listOf(listOf(0))),
+                    Response(userId = "user202", answer = listOf(listOf(1))),
+                    Response(userId = "user203", answer = listOf(listOf(2))),
+                    Response(userId = "user204", answer = listOf(listOf(3))),
+                    Response(userId = "user205", answer = listOf(listOf(4)))
+                ),
+                comments = mutableListOf(
+                    Comment(commentId = "comment106", userId = "user206", text = "Netflix has the best shows!", createdDate = dateFormat.format(Date()), profileImage = "image_url106", like = Like(count = 3), dislike = Dislike(count = 1))
+                )
+            ),
+            SurveyV2(
+                surveyId = "107",
+                creatorId = "creator107",
+                title = "Coffee Consumption Habits",
+                content = "How often do you consume coffee and what types do you prefer?",
+                likes = Like(count = 25),
+                numOfComments = 6,
+                createdDate = dateFormat.format(Date()),
+                modifiedDate = dateFormat.format(Date()),
+                status = "Active",
+                qnA = mutableListOf(
+                    QnA(order = 1, question = "How many cups of coffee do you drink each day?", answerList = listOf("1 cup", "2 cups", "3 cups", "4 cups", "5 or more cups"), answerCountList = listOf(5, 10, 15, 8, 2), questionType = "single")
+                ),
+                response = mutableListOf(
+                    Response(userId = "user301", answer = listOf(listOf(0))),
+                    Response(userId = "user302", answer = listOf(listOf(1))),
+                    Response(userId = "user303", answer = listOf(listOf(2))),
+                    Response(userId = "user304", answer = listOf(listOf(3))),
+                    Response(userId = "user305", answer = listOf(listOf(4))),
+                    Response(userId = "user306", answer = listOf(listOf(4))),
+                    Response(userId = "user307", answer = listOf(listOf(4))),
+                    Response(userId = "user308", answer = listOf(listOf(4))),
+                    Response(userId = "user309", answer = listOf(listOf(4))),
+                    Response(userId = "user310", answer = listOf(listOf(4)))
+                ),
+                comments = mutableListOf(
+                    Comment(commentId = "comment107", userId = "user311", text = "I can't start my day without coffee!", createdDate = dateFormat.format(Date()), profileImage = "image_url107", like = Like(count = 5), dislike = Dislike(count = 2))
                 )
             )
         )
 
-        val survey2 = Survey(
-            creatorId = "user2",
-            title = "Exercise Habits Survey",
-            content = "Tell us about your exercise habits.",
-            likes = 20,
-            responses = 10,
-            createdDate = dateFormat.format(Date()),
-            modifiedDate = dateFormat.format(Date()),
-            status = "Active",
-            questions = mutableListOf(
-                Question(
-                    content = "How often do you exercise?",
-                    options = mutableListOf(
-                        Option(text = "Daily", order = 1),
-                        Option(text = "Weekly", order = 2),
-                        Option(text = "Monthly", order = 3)
-                    ),
-                    order = 1
-                ),
-                Question(
-                    content = "What is your favorite type of exercise?",
-                    options = mutableListOf(
-                        Option(text = "Running", order = 1),
-                        Option(text = "Swimming", order = 2),
-                        Option(text = "Cycling", order = 3)
-                    ),
-                    order = 2
-                )
-            )
-        )
-
-        addSurveyWithAutoIncrementId(survey1) {
-            addSurveyWithAutoIncrementId(survey2)
+        // Sequentially add each survey to Firebase
+        surveys.forEach { survey ->
+            addSurveyToFirebase(survey)
         }
     }
 
-    private fun addSurveyWithAutoIncrementId(survey: Survey, callback: (() -> Unit)? = null) {
-        dbRef.orderByKey().limitToLast(1).addListenerForSingleValueEvent(object : com.google.firebase.database.ValueEventListener {
-            override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
-                val maxId = snapshot.children.mapNotNull { it.key?.toIntOrNull() }.maxOrNull() ?: 0
-                val newSurveyId = (maxId + 1).toString()
-                survey.surveyId = newSurveyId
-                dbRef.child(newSurveyId).setValue(survey).addOnCompleteListener {
-                    Log.d("DummyDataGenerator", "Survey added with ID: $newSurveyId")
-                    callback?.invoke()
-                }
+    private fun addSurveyToFirebase(survey: SurveyV2) {
+        dbRef.push().setValue(survey).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.d("DummyDataGeneratorV2", "Survey successfully added to Firebase with ID: ${survey.surveyId}")
+            } else {
+                Log.e("DummyDataGeneratorV2", "Failed to add survey to Firebase: ${task.exception?.message}")
             }
-
-            override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
-                Log.e("DummyDataGenerator", "Failed to fetch last survey id: ${error.message}")
-            }
-        })
+        }
     }
 }
