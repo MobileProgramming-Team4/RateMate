@@ -61,6 +61,3 @@ class SurveyViewModel(private val repository: SurveyRepository) : ViewModel() {
     }
 }
 
-enum class SortType {
-    LATEST, MOST_LIKED, MOST_RESPONDED
-}

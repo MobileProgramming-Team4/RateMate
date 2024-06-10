@@ -2,30 +2,25 @@ package com.example.ratemate.survey
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -41,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ratemate.R
+import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.ui.theme.NotoSansKr
 
 // 답변 화면
@@ -62,30 +58,7 @@ fun AnswerSurveyScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "설문조사",
-                                modifier = Modifier.padding(end = 48.dp),
-                                fontFamily = NotoSansKr,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { onNavigateBack() }) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
-                        }
-                    }
-                )
-                Divider(color = colorResource(id = R.color.gray_50))
-            }
+            CommonTopAppBar(title = "설문조사", onNavigateBack)
         }
     ) { paddingValues ->
         Column(
@@ -111,12 +84,15 @@ fun AnswerSurveyScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    modifier = Modifier.width(168.dp),
+                    modifier = Modifier
+                        .width(168.dp)
+                        .height(40.dp),
                     onClick = { if (!isFirstPage) currentPage-- },
                     enabled = !isFirstPage,
                     colors = ButtonDefaults.buttonColors(
                         if (isFirstPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
-                    )
+                    ),
+                    contentPadding = PaddingValues(vertical = 0.dp)
                 ) {
                     Text(
                         text = "이전",
@@ -130,12 +106,15 @@ fun AnswerSurveyScreen(
                 }
 
                 Button(
-                    modifier = Modifier.width(168.dp),
+                    modifier = Modifier
+                        .width(168.dp)
+                        .height(40.dp),
                     onClick = { if (!isLastPage) currentPage++ },
                     enabled = !isLastPage,
                     colors = ButtonDefaults.buttonColors(
                         if (isLastPage) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue)
-                    )
+                    ),
+                    contentPadding = PaddingValues(vertical = 0.dp)
                 ) {
                     Text(
                         text = "다음",
@@ -149,13 +128,14 @@ fun AnswerSurveyScreen(
                 }
             }
 
-            if (isLastPage && allAnswered) {
+            if (allAnswered) {
                 Button(
                     onClick = { onSubmit(answers) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue))
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
+                    contentPadding = PaddingValues(vertical = 0.dp)
                 ) {
                     Text(
                         text = "설문조사 제출",
