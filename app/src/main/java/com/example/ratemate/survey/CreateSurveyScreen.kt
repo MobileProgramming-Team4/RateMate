@@ -1,5 +1,6 @@
 package com.example.ratemate.survey
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,27 +31,42 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.ratemate.R
 import com.example.ratemate.common.CommonTextField
 import com.example.ratemate.common.CommonTopAppBar
+import com.example.ratemate.data.Like
+import com.example.ratemate.data.QnA
+import com.example.ratemate.data.SurveyV2
+import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.ui.theme.NotoSansKr
+import com.example.ratemate.viewModel.SurveyV2ViewModel
+import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
 
 // 설문조사 생성 화면
 @Composable
-fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigateBack: () -> Unit) {
+fun CreateSurveyScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val repository = SurveyV2Repository()
+    val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
+
     var surveyTitle by remember { mutableStateOf("") }
     val questionsList = remember { mutableStateListOf<QuestionItem>() }
 
+    val onNavigateToResult: (String) -> Unit = { /* Handle navigation to result */ }
+//    val onNavigateBack: () -> Unit = { /* Handle navigation back */ }
+
     Scaffold(
         topBar = {
-            CommonTopAppBar(title = "등록하기", onNavigateBack)
+            CommonTopAppBar(title = "등록하기", onNavigateBack = { /* Handle navigation back */ })
         }
     ) { paddingValues ->
         Column(
@@ -82,6 +98,10 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
                         val updatedAnswers = questionItem.answers.toMutableList()
                         updatedAnswers.removeAt(answerIndex)
                         questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                    },
+                    onRemoveQuestion = {
+                        Log.d("index", index.toString())
+                        questionsList.removeAt(index)
                     }
                 )
             }
@@ -123,7 +143,36 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
             }
 
             Button(
-                onClick = { onSubmit(surveyTitle, questionsList) },
+                onClick = {
+                    val surveyData = SurveyV2(
+                        surveyId = "", // 필요시 설정
+                        creatorId = "", // 필요시 설정
+                        title = surveyTitle,
+                        content = "", // 필요시 설정
+                        likes = Like(),
+                        numOfComments = 0,
+                        createdDate = "", // 필요시 설정
+                        modifiedDate = "", // 필요시 설정
+                        status = "active",
+                        qnA = questionsList.mapIndexed { index, questionItem ->
+                            QnA(
+                                order = index + 1,
+                                question = questionItem.question,
+                                answerList = questionItem.answers,
+                                answerCountList = List(questionItem.answers.size) { 0 },
+                                questionType = questionItem.questionType
+                            )
+                        }.toMutableList(),
+                        response = mutableListOf(),
+                        comments = mutableListOf()
+                    )
+                    viewModel.addSurvey(surveyData)
+////                    navController.navigate("SurveyResult/${surveyData.surveyId}")
+////                    navController.navigate("SurveyResult")
+//                    navController.navigate("Start") {
+//                        popUpTo("Start") { inclusive = true }
+//                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 0.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -142,30 +191,40 @@ fun CreateSurveyScreen(onSubmit: (String, List<QuestionItem>) -> Unit, onNavigat
     }
 }
 
-
 @Composable
 fun QuestionEditor(
     question: QuestionItem,
     onAddAnswer: () -> Unit,
-    onRemoveAnswer: (Int) -> Unit
+    onRemoveAnswer: (Int) -> Unit,
+    onRemoveQuestion: () -> Unit
 ) {
     var questionText by remember { mutableStateOf(question.question) }
     val answerTexts = remember { mutableStateListOf<String>().apply { addAll(question.answers) } }
 
     Column {
-        CommonTextField(
-            label = "질문",
-            value = questionText,
-            onValueChange = {
-                questionText = it
-                question.question = it  // 바로 상태 업데이트
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
-            ),
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CommonTextField(
+                label = "질문",
+                value = questionText,
+                onValueChange = {
+                    questionText = it
+                    question.question = it  // 바로 상태 업데이트
+                },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Text
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 12.dp)
+            )
+            IconButton(
+                onClick = { onRemoveQuestion() }
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "질문 삭제")
+            }
+        }
+
         answerTexts.forEachIndexed { index, answerText ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -231,14 +290,14 @@ fun QuestionEditor(
     }
 }
 
-@Preview
-@Composable
-private fun PreviewCreateScreen() {
-    CreateSurveyScreen(
-        onSubmit = { title, questions ->
-            println("Title: $title")
-            questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
-        },
-        onNavigateBack = { /* Handle navigation back */ }
-    )
-}
+//@Preview
+//@Composable
+//private fun PreviewCreateScreen() {
+//    CreateSurveyScreen(
+//        onSubmit = { title, questions ->
+//            println("Title: $title")
+//            questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
+//        },
+//        onNavigateBack = { /* Handle navigation back */ }
+//    )
+//}

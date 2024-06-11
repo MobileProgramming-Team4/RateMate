@@ -9,14 +9,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ratemate.data.QnA
+import com.example.ratemate.viewModel.SurveyV2ViewModel
 
 // 결과 화면
 @Composable
-fun SurveyResultScreen(title: String, questions: List<QuestionItem>) {
+fun SurveyResultScreen() {
+    val viewModel: SurveyV2ViewModel = viewModel()
+    val survey by viewModel.survey.collectAsState()
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -30,11 +36,11 @@ fun SurveyResultScreen(title: String, questions: List<QuestionItem>) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             Text(
-                text = "제목: $title",
+                text = "제목: ${survey?.title ?: ""}",
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            questions.forEach { questionItem ->
+            survey?.qnA?.forEach { questionItem ->
                 SurveyResult(questionItem)
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
             }
@@ -43,7 +49,7 @@ fun SurveyResultScreen(title: String, questions: List<QuestionItem>) {
 }
 
 @Composable
-fun SurveyResult(question: QuestionItem) {
+fun SurveyResult(question: QnA) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = "질문: ${question.question}",
@@ -51,30 +57,29 @@ fun SurveyResult(question: QuestionItem) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        val answerCounts = remember { calculateAnswerCounts(question.answers) }
+        val answerCounts = question.answerCountList
 
-        answerCounts.forEach { (answer, count) ->
+        question.answerList.forEachIndexed { index, answer ->
             Text(
-                text = "$answer: $count",
+                text = "$answer: ${answerCounts[index]}",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
             )
         }
     }
 }
-
 fun calculateAnswerCounts(answers: List<String>): Map<String, Int> {
     return answers.groupingBy { it }.eachCount()
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSurveyResultScreen() {
-    val sampleQuestions = listOf(
-        QuestionItem("질문1", mutableListOf("답변1-1", "답변1-2", "답변1-2", "답변1-1", "답변1-2", "답변1-3", "답변1-1", "답변1-1", "답변1-3"), "single"),
-        QuestionItem("질문2", mutableListOf("답변2-1", "답변2-2", "답변2-3", "답변2-4", "답변2-5"), "multiple"),
-        QuestionItem("질문3", mutableListOf("답변3-1", "답변3-2", "답변3-3", "답변3-4", "답변3-5", "답변3-6"), "single"),
-        QuestionItem("질문4", mutableListOf("답변4-1", "답변4-2", "답변4-3", "답변4-4"), "multiple")
-    )
-    SurveyResultScreen("사용자 만족도 조사", sampleQuestions)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewSurveyResultScreen() {
+//    val sampleQuestions = listOf(
+//        QuestionItem("질문1", mutableListOf("답변1-1", "답변1-2", "답변1-2", "답변1-1", "답변1-2", "답변1-3", "답변1-1", "답변1-1", "답변1-3"), "single"),
+//        QuestionItem("질문2", mutableListOf("답변2-1", "답변2-2", "답변2-3", "답변2-4", "답변2-5"), "multiple"),
+//        QuestionItem("질문3", mutableListOf("답변3-1", "답변3-2", "답변3-3", "답변3-4", "답변3-5", "답변3-6"), "single"),
+//        QuestionItem("질문4", mutableListOf("답변4-1", "답변4-2", "답변4-3", "답변4-4"), "multiple")
+//    )
+//    SurveyResultScreen("사용자 만족도 조사", sampleQuestions)
+//}
