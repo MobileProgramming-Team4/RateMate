@@ -6,20 +6,21 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.home.HomeScreen
-import com.example.ratemate.home.SurveyResultScreen
 import com.example.ratemate.login.LoginScreen
 import com.example.ratemate.login.RegisterScreen
 import com.example.ratemate.login.StartScreen
+import com.example.ratemate.survey.CreateSurveyScreen
+import com.example.ratemate.survey.SurveyResultScreen
 
 sealed class Route(val route: String){
     object Start: Route("Start")
     object Login: Route("Login")
     object Register: Route("Register")
     object Home: Route("Home")
-    object SurveyResult: Route("SurveyResult")
     object SurveyList: Route("SurveyList")
+    object CreateSurvey : Route("CreateSurvey")
+    object SurveyResult : Route("SurveyResult")
 }
 
 @Composable
@@ -47,8 +48,12 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
         composable("Home") {
             HomeScreen(navController)
         }
-//        composable("SurveyList") {
-//            SurveyListScreen(navController)
-//        }
+
+        composable(Route.CreateSurvey.route) {
+            CreateSurveyScreen(navController)
+        }
+        composable(Route.SurveyResult.route) {
+            SurveyResultScreen()
+        }
     }
 }
