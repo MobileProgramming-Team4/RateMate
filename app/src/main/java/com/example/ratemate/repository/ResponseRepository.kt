@@ -1,59 +1,52 @@
 package com.example.ratemate.repository
 
 import com.example.ratemate.data.Response
-import com.google.firebase.database.*
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-class ResponseRepository() {
-    private val database = FirebaseDatabase.getInstance()
-    private val dbRef = database.getReference("responses")
+class ResponseRepository {
+    private val dbRef = FirebaseDatabase.getInstance().getReference("response")
 
-    // 응답 추가
     fun addResponse(response: Response) {
-        val responseId = dbRef.push().key ?: return  // Generate a new key for each new response
-        dbRef.child(responseId).setValue(response)
+        val userId = response.userId.takeIf { it.isNotBlank() } ?: return
+        dbRef.child(userId).setValue(response)
     }
 
-    // 응답 삭제
-    fun deleteResponse(responseId: String) {
-        dbRef.child(responseId).removeValue()
+    fun deleteResponse(userId: String) {
+        dbRef.child(userId).removeValue()
     }
 
-    // 응답 업데이트
-    fun updateResponse(responseId: String, updatedFields: Map<String, Any>) {
-        dbRef.child(responseId).updateChildren(updatedFields)
+    fun updateResponse(userId: String, updatedFields: Map<String, Any>) {
+        dbRef.child(userId).updateChildren(updatedFields)
     }
 
-    // 모든 응답 조회
     fun getAllResponses(): Flow<List<Response>> = callbackFlow {
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
+        val listener = dbRef.addValueEventListener(object : com.google.firebase.database.ValueEventListener {
+            override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
                 val responses = snapshot.children.mapNotNull { it.getValue(Response::class.java) }
-                trySend(responses)
+                trySend(responses).isSuccess
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
-            }
-        }
-        dbRef.addValueEventListener(listener)
-        awaitClose { dbRef.removeEventListener(listener) }
-    }
-
-    // 특정 응답 조회
-    fun getResponse(responseId: String): Flow<Response?> = callbackFlow {
-        val listener = dbRef.child(responseId).addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val response = snapshot.getValue(Response::class.java)
-                trySend(response)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
+            override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
                 close(error.toException())
             }
         })
-        awaitClose { dbRef.child(responseId).removeEventListener(listener) }
+        awaitClose { dbRef.removeEventListener(listener) }
+    }
+
+    fun getResponse(userId: String): Flow<Response?> = callbackFlow {
+        val listener = dbRef.child(userId).addValueEventListener(object : com.google.firebase.database.ValueEventListener {
+            override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
+                val response = snapshot.getValue(Response::class.java)
+                trySend(response).isSuccess
+            }
+
+            override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
+                close(error.toException())
+            }
+        })
+        awaitClose { dbRef.child(userId).removeEventListener(listener) }
     }
 }
