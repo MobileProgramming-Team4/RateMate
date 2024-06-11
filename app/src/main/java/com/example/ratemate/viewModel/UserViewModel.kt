@@ -8,7 +8,6 @@ import com.example.ratemate.repository.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-
 class UserViewModelFactory(private val repository: UserRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(UserViewModel::class.java)) {
@@ -59,5 +58,13 @@ class UserViewModel(private val repository: UserRepository) : ViewModel() {
 
     fun updateUser(userId: String, updatedFields: Map<String, Any>) {
         repository.updateUser(userId, updatedFields)
+    }
+
+    fun addSurveyToCreated(userId: String, surveyId: String) {
+        repository.addSurveyToCreated(userId, surveyId)
+    }
+
+    fun addSurveyToParticipated(userId: String, surveyId: String) {
+        repository.addSurveyToParticipated(userId, surveyId)
     }
 }
