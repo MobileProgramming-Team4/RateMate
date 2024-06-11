@@ -27,6 +27,32 @@ class UserRepository() {
         dbRef.child(userId).updateChildren(updatedFields)
     }
 
+    // surveysCreated 업데이트
+    fun addSurveyToCreated(userId: String, surveyId: String) {
+        dbRef.child(userId).child("surveysCreated").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val surveysCreated = snapshot.getValue<List<String>>()?.toMutableList() ?: mutableListOf()
+                surveysCreated.add(surveyId)
+                dbRef.child(userId).child("surveysCreated").setValue(surveysCreated)
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    // surveysParticipated 업데이트
+    fun addSurveyToParticipated(userId: String, surveyId: String) {
+        dbRef.child(userId).child("surveysParticipated").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val surveysParticipated = snapshot.getValue<List<String>>()?.toMutableList() ?: mutableListOf()
+                surveysParticipated.add(surveyId)
+                dbRef.child(userId).child("surveysParticipated").setValue(surveysParticipated)
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
     // 모든 사용자 조회
     fun getAllUsers(): Flow<List<User>> = callbackFlow {
         val listener = object : ValueEventListener {
@@ -58,6 +84,5 @@ class UserRepository() {
         dbRef.child(userId).addListenerForSingleValueEvent(listener)
         awaitClose { dbRef.child(userId).removeEventListener(listener) }
     }
-
 
 }
