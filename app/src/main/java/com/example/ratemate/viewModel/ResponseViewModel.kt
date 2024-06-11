@@ -1,4 +1,4 @@
-package com.example.ratemate.viewModel
+package com.example.ratemate.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
 class ResponseViewModelFactory(private val repository: ResponseRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ResponseViewModel::class.java)) {
@@ -20,46 +19,45 @@ class ResponseViewModelFactory(private val repository: ResponseRepository) : Vie
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-class ResponseViewModel(private val repository: ResponseRepository) : ViewModel() {
 
-    // 모든 응답 목록을 위한 StateFlow
+class ResponseViewModel(private val repository: ResponseRepository) : ViewModel() {
     private val _responses = MutableStateFlow<List<Response>>(emptyList())
     val responses: StateFlow<List<Response>> = _responses.asStateFlow()
 
-    // 특정 응답을 위한 StateFlow
     private val _response = MutableStateFlow<Response?>(null)
     val response: StateFlow<Response?> = _response.asStateFlow()
 
-    init {
-        // 모든 응답 로드
-        loadAllResponses()
+    fun addResponse(response: Response) {
+        viewModelScope.launch {
+            repository.addResponse(response)
+        }
     }
 
-    private fun loadAllResponses() {
+    fun deleteResponse(userId: String) {
         viewModelScope.launch {
-            repository.getAllResponses().collect { responses ->
-                _responses.value = responses
+            repository.deleteResponse(userId)
+        }
+    }
+
+    fun updateResponse(userId: String, updatedFields: Map<String, Any>) {
+        viewModelScope.launch {
+            repository.updateResponse(userId, updatedFields)
+        }
+    }
+
+    fun fetchAllResponses() {
+        viewModelScope.launch {
+            repository.getAllResponses().collect { listOfResponses ->
+                _responses.value = listOfResponses
             }
         }
     }
 
-    fun getResponse(responseId: String) {
+    fun fetchResponse(userId: String) {
         viewModelScope.launch {
-            repository.getResponse(responseId).collect { response ->
+            repository.getResponse(userId).collect { response ->
                 _response.value = response
             }
         }
-    }
-
-    fun addResponse(response: Response) {
-        repository.addResponse(response)
-    }
-
-    fun deleteResponse(responseId: String) {
-        repository.deleteResponse(responseId)
-    }
-
-    fun updateResponse(responseId: String, updatedFields: Map<String, Any>) {
-        repository.updateResponse(responseId, updatedFields)
     }
 }
