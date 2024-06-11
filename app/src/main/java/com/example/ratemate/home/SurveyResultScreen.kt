@@ -204,7 +204,7 @@ fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
             userId = user.email,
             text = comment,
             createdDate = Date().toString(),
-            profileImage = user.profileImage,
+            profileImage = user.profileImage.toString(),
             like = Like(),
             dislike = Dislike()
         )
