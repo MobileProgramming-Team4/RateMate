@@ -38,7 +38,7 @@ fun MyPageNavigationHost(navController: NavHostController) {
             Answer(navController)
         }
         composable(MyPageNavRoutes.Point.route){
-            Point()
+            Point(navController)
         }
         composable(MyPageNavRoutes.SurveyResult.route + "/{SurveyID}",
             arguments = listOf(
@@ -47,7 +47,7 @@ fun MyPageNavigationHost(navController: NavHostController) {
                 }
             )) {
             SurveyResultScreen(
-                it.arguments?.getString("SserID")
+                it.arguments?.getString("SurveyID")
             )
         }
     }

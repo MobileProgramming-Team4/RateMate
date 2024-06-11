@@ -1,5 +1,6 @@
 package com.example.ratemate.myPage
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,64 +92,62 @@ fun Answer(navController: NavHostController) {
 
     var expanded by remember { mutableStateOf(false) }
     var sortText by remember { mutableStateOf("최신순") }
-    Scaffold(
-        content = { paddingValues ->
-            Column(modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        sortText,
-                        fontSize = 15.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Box {
-                        IconButton(onClick = { expanded = !expanded }) {
-                            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("최신순",fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.LATEST)
-                                    sortText = "최신순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("좋아요 많은 순", fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_LIKED)
-                                    sortText = "좋아요 많은 순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("답변 많은 순", fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_RESPONDED)
-                                    sortText = "답변 많은 순"
-                                    expanded = false
-                                }
-                            )
+    user?.let {
+        Scaffold(
+            content = { paddingValues ->
+                Column(modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            sortText,
+                            fontSize = 15.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Box {
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("최신순",fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.LATEST)
+                                        sortText = "최신순"
+                                        expanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("좋아요 많은 순", fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.MOST_LIKED)
+                                        sortText = "좋아요 많은 순"
+                                        expanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("답변 많은 순", fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.MOST_RESPONDED)
+                                        sortText = "답변 많은 순"
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                if (surveys == null) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally)) // 로딩 표시
-                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
                     LazyColumn {
                         items(surveys) { survey ->
                             if(user!!.surveysParticipated.contains(survey.surveyId)){
@@ -158,63 +157,51 @@ fun Answer(navController: NavHostController) {
                     }
                 }
             }
-        }
-    )
+        )
+    }
+
 }
 
 @Composable
-fun Point() {
+fun Point(navController: NavHostController) {
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid
     val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(uid!!)
     val user by userViewModel.user.collectAsState(initial = null)
 
-    val storeItemViewModel : StoreItemViewModel = viewModel(factory = StoreItemViewModelFactory(
-        StoreItemRepository()
-        )
-    )
-
-    val goods by storeItemViewModel.storeItems.collectAsState(initial = emptyList())
-
-    var showGoodsList by rememberSaveable { mutableStateOf(goods) }
-
-    LaunchedEffect(key1 = goods) {
-        showGoodsList = goods.sortedBy { it.itemName }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-
-    ) {
-        Box(
+    user?.let{
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(350.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.small_logo2), // 실제 drawable로 교체
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                Text(text = "${user!!.email}님", fontSize = 30.sp, color = Color.Black, fontWeight = FontWeight.Bold )
-                Text(text = "잔여 포인트: ${user!!.points}", fontSize = 28.sp, color = Color.Black, fontWeight = FontWeight.Bold)
-            }
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
 
-        }
-        LazyColumn {
-            items(showGoodsList) { goods ->
-                if(user!!.PurchaseList.contains(goods)){
+            ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(350.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.small_logo2), // 실제 drawable로 교체
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    Text(text = "${user!!.email}님", fontSize = 30.sp, color = Color.Black, fontWeight = FontWeight.Bold )
+                    Text(text = "잔여 포인트: ${user!!.points}", fontSize = 28.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+
+            }
+            LazyColumn {
+                items(user!!.PurchaseList) { goods ->
                     PointItem(itemName = goods.itemName, itemPoints = goods.cost)
                 }
             }
@@ -222,22 +209,7 @@ fun Point() {
     }
 
 
-}
 
-@Composable
-fun ItemRow(itemName: String, itemPoints: String) {
-    Box(modifier = Modifier.border(1.dp, Color.Gray, RoundedCornerShape(4.dp))){
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 15.dp)
-        ) {
-            Spacer(modifier = Modifier.width(20.dp))
-            Text(text = itemName, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(150.dp))
-            Text(text = itemPoints, fontSize = 16.sp)
-        }
-    }
 
 }
 
@@ -258,64 +230,63 @@ fun Quest(navController: NavHostController) {
 
     var expanded by remember { mutableStateOf(false) }
     var sortText by remember { mutableStateOf("최신순") }
-    Scaffold(
-        content = { paddingValues ->
-            Column(modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        sortText,
-                        fontSize = 15.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Box {
-                        IconButton(onClick = { expanded = !expanded }) {
-                            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("최신순",fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.LATEST)
-                                    sortText = "최신순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("좋아요 많은 순", fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_LIKED)
-                                    sortText = "좋아요 많은 순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("답변 많은 순", fontFamily = NotoSansKr,
-                                    fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_RESPONDED)
-                                    sortText = "답변 많은 순"
-                                    expanded = false
-                                }
-                            )
+
+    user?.let {
+        Scaffold(
+            content = { paddingValues ->
+                Column(modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            sortText,
+                            fontSize = 15.sp,
+                            fontFamily = NotoSansKr,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Box {
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("최신순",fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.LATEST)
+                                        sortText = "최신순"
+                                        expanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("좋아요 많은 순", fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.MOST_LIKED)
+                                        sortText = "좋아요 많은 순"
+                                        expanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("답변 많은 순", fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold) },
+                                    onClick = {
+                                        viewModel.sortSurveys(SortType.MOST_RESPONDED)
+                                        sortText = "답변 많은 순"
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                if (surveys == null) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally)) // 로딩 표시
-                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
                     LazyColumn {
                         items(surveys) { survey ->
                             if(user!!.surveysCreated.contains(survey.surveyId)){
@@ -325,8 +296,9 @@ fun Quest(navController: NavHostController) {
                     }
                 }
             }
-        }
-    )
+        )
+    }
+
 }
 
 @Composable
