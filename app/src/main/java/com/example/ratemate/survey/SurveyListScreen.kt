@@ -15,24 +15,51 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.data.SurveyV2
+import com.example.ratemate.data.User
 import com.example.ratemate.repository.SurveyV2Repository
+import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.viewModel.SortType
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SurveyListScreen(navController: NavController) {
-    val repository = SurveyV2Repository()
-    val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
-    val surveys by viewModel.surveys.collectAsState(initial = emptyList())
+    val surveyRepository = SurveyV2Repository()
+    val surveyViewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(surveyRepository))
+    val surveys by surveyViewModel.surveys.collectAsState(initial = emptyList())
+
+    val userRepository = UserRepository()
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(userRepository))
+
+    var user by remember { mutableStateOf<User?>(null) }
 
     var expanded by remember { mutableStateOf(false) }
     var sortText by remember { mutableStateOf("최신순") }
 
+    val auth = FirebaseAuth.getInstance()
+    val uid = auth.currentUser?.uid
+
+    // UID를 print로 출력
+    LaunchedEffect(uid) {
+        println("Logged in user ID: $uid")
+    }
+
     LaunchedEffect(Unit) {
-        viewModel.getAllSurveys()
+        uid?.let {
+            userViewModel.getUser(it)
+        }
+        surveyViewModel.getAllSurveys()
+    }
+
+    LaunchedEffect(userViewModel.user) {
+        userViewModel.user.collect { fetchedUser ->
+            user = fetchedUser
+        }
     }
 
     Scaffold(
@@ -81,7 +108,7 @@ fun SurveyListScreen(navController: NavController) {
                             DropdownMenuItem(
                                 text = { Text("최신순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
                                 onClick = {
-                                    viewModel.sortSurveys(SortType.LATEST)
+                                    surveyViewModel.sortSurveys(SortType.LATEST)
                                     sortText = "최신순"
                                     expanded = false
                                 }
@@ -89,7 +116,7 @@ fun SurveyListScreen(navController: NavController) {
                             DropdownMenuItem(
                                 text = { Text("좋아요 많은 순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
                                 onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_LIKED)
+                                    surveyViewModel.sortSurveys(SortType.MOST_LIKED)
                                     sortText = "좋아요 많은 순"
                                     expanded = false
                                 }
@@ -97,7 +124,7 @@ fun SurveyListScreen(navController: NavController) {
                             DropdownMenuItem(
                                 text = { Text("답변 많은 순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
                                 onClick = {
-                                    viewModel.sortSurveys(SortType.MOST_RESPONDED)
+                                    surveyViewModel.sortSurveys(SortType.MOST_RESPONDED)
                                     sortText = "답변 많은 순"
                                     expanded = false
                                 }
@@ -110,7 +137,11 @@ fun SurveyListScreen(navController: NavController) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally)) // 로딩 표시
                 } else {
                     LazyColumn {
-                        items(surveys) { survey ->
+                        items(surveys.filter { survey ->
+                            user?.let {
+                                survey.surveyId !in it.surveysCreated && survey.surveyId !in it.surveysParticipated
+                            } ?: true
+                        }) { survey ->
                             SurveyItem(survey, navController)
                         }
                     }
