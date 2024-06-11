@@ -344,7 +344,7 @@ fun AddUserData(email: String, password: String) {
         createdDate = Date().toString(),
         modifiedDate = Date().toString(),
         status = "active",
-        profileImage = R.drawable.profile.toString(),
+        profileImage = R.drawable.profile,
         surveysCreated = mutableListOf(),
         surveysParticipated = mutableListOf(),
         PurchaseList = mutableListOf()

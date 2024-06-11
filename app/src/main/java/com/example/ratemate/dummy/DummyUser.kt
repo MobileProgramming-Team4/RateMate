@@ -1,5 +1,6 @@
 package com.example.ratemate.dummy
 
+import com.example.ratemate.R
 import com.example.ratemate.data.User
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -17,7 +18,7 @@ fun addDummyUserData() {
             createdDate = "2022-01-01",
             modifiedDate = "2022-01-01",
             status = "active",
-            profileImage = "https://example.com/user1.jpg",
+            profileImage = R.drawable.profile,
             surveysCreated = listOf("survey1", "survey2"),
             surveysParticipated = listOf("survey3"),
             PurchaseList = listOf()
@@ -30,7 +31,7 @@ fun addDummyUserData() {
             createdDate = "2022-02-01",
             modifiedDate = "2022-02-01",
             status = "active",
-            profileImage = "https://example.com/user2.jpg",
+            profileImage = R.drawable.profile,
             surveysCreated = listOf("survey3"),
             surveysParticipated = listOf("survey1", "survey2"),
             PurchaseList = listOf()
