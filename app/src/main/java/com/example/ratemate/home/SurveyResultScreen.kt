@@ -101,7 +101,7 @@ import java.util.Date
 import java.util.UUID
 
 @Composable
-fun SurveyResultScreen(){
+fun SurveyResultScreen(SurveyID: String?){
     //유저 정보 가져오기
     val auth = FirebaseAuth.getInstance()
     val userUid = auth.currentUser?.uid
@@ -111,11 +111,13 @@ fun SurveyResultScreen(){
 
 
     //설문 정보 가져오기
-    val surveyId = "-NzhaHXBUwoNufiXDouM" //전달 받아야 하는 값
+    val surveyId = SurveyID //전달 받아야 하는 값
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
-    surveyV2ViewModel.getSurvey(surveyId)
+    if (surveyId != null) {
+        surveyV2ViewModel.getSurvey(surveyId)
+    }
     val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = null)
 
 

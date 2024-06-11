@@ -29,7 +29,7 @@ sealed class HomeNavRoutes (val route: String) {
 }
 
 @Composable
-fun HomeNavigationHost(navController: NavHostController) {
+fun HomeNavigationHost(navController: NavHostController, startnavController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = HomeNavRoutes.Home.route
@@ -38,13 +38,7 @@ fun HomeNavigationHost(navController: NavHostController) {
             SurveyListScreen(navController)
         }
         composable(HomeNavRoutes.Question.route){
-            CreateSurveyScreen(
-                onSubmit = { title, questions ->
-                    println("Title: $title")
-                    questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
-                },
-                onNavigateBack = { /* Handle navigation back */ }
-            )
+            CreateSurveyScreen(navController)
         }
         composable(HomeNavRoutes.MyPage.route){
             MyPageScreen()
@@ -53,7 +47,7 @@ fun HomeNavigationHost(navController: NavHostController) {
             StoreScreen(navController)
         }
         composable(HomeNavRoutes.Option.route){
-            Option()
+            Option(startnavController)
         }
 
     }

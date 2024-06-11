@@ -56,6 +56,11 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
         }
     }
 
+//    fun setSurvey(survey: SurveyV2) {
+//        _survey.value = survey
+//
+//    }
+
     fun sortSurveys(sortType: SortType) {
         viewModelScope.launch {
             val sortedSurveys = when (sortType) {
