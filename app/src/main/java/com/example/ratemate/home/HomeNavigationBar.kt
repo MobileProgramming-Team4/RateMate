@@ -29,7 +29,7 @@ sealed class HomeNavRoutes (val route: String) {
 }
 
 @Composable
-fun HomeNavigationHost(navController: NavHostController) {
+fun HomeNavigationHost(navController: NavHostController, startnavController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = HomeNavRoutes.Home.route
@@ -47,7 +47,7 @@ fun HomeNavigationHost(navController: NavHostController) {
             StoreScreen(navController)
         }
         composable(HomeNavRoutes.Option.route){
-            Option()
+            Option(startnavController)
         }
 
     }

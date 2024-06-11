@@ -10,9 +10,11 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.ratemate.home.SurveyResultScreen
 import com.example.ratemate.navigation.Route
 
@@ -36,10 +38,17 @@ fun MyPageNavigationHost(navController: NavHostController) {
             Answer(navController)
         }
         composable(MyPageNavRoutes.Point.route){
-            Point()
+            Point(navController)
         }
-        composable(MyPageNavRoutes.SurveyResult.route) {
-            SurveyResultScreen()
+        composable(MyPageNavRoutes.SurveyResult.route + "/{SurveyID}",
+            arguments = listOf(
+                navArgument(name = "SurveyID") {
+                    type = NavType.StringType
+                }
+            )) {
+            SurveyResultScreen(
+                it.arguments?.getString("SurveyID")
+            )
         }
     }
 }
