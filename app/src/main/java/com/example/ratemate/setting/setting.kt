@@ -2,13 +2,16 @@ package com.example.ratemate.setting
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -21,6 +24,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,9 +39,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ratemate.R
+import com.example.ratemate.repository.UserRepository
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import javax.sql.RowSetWriter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,142 +56,190 @@ fun Option(navController: NavHostController) {
     var confirmPassword by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
-    var imgchange by remember { mutableStateOf(true) }
+    var profSuccessDialog by remember { mutableStateOf(false) }
+    var profileimg = "profileImage"
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        TopAppBar(
-            title = {
-                Text(
-                    "Setting",
-                    modifier = Modifier.padding(start = 140.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp
+    val auth = FirebaseAuth.getInstance()
+    val uid = auth.currentUser?.uid
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    userViewModel.getUser(uid!!)
+    val user by userViewModel.user.collectAsState(initial = null)
+
+    user?.let {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Setting",
+                        modifier = Modifier.padding(start = 140.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            var imgchange by remember { mutableStateOf(user!!.profileImage) }
+            // 프로필 사진 변경 섹션
+            SectionTitle("프로필 사진 변경")
+            Spacer(modifier = Modifier.height(15.dp))
+            Image(
+                painter = painterResource(id = imgchange), // 프로필 이미지 리소스
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray)
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+            Row(modifier = Modifier
+                .width(300.dp)) {
+                Image(
+                    painter = painterResource(id = R.drawable.profile), // 프로필 이미지 리소스
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable { imgchange = R.drawable.profile }
+                )
+                Spacer(modifier = Modifier.weight(0.5f))
+                Image(
+                    painter = painterResource(id = R.drawable.profile2), // 프로필 이미지 리소스
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable { imgchange = R.drawable.profile2 }
+                )
+                Spacer(modifier = Modifier.weight(0.5f))
+                Image(
+                    painter = painterResource(id = R.drawable.profile3), // 프로필 이미지 리소스
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable { imgchange = R.drawable.profile3 }
                 )
             }
-        )
+            Spacer(modifier = Modifier.height(15.dp))
+            Button(
+                onClick = {
+                    userViewModel.updateUser(uid, mapOf(profileimg to imgchange))
+                    profSuccessDialog = true
+                },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color.LightGray
+                )
+            ) {
+                Text("이미지 등록")
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-        // 프로필 사진 변경 섹션
-        SectionTitle("프로필 사진 변경")
-        Spacer(modifier = Modifier.height(15.dp))
-        if(imgchange){
-            Image(
-                painter = painterResource(id = R.drawable.profile), // 프로필 이미지 리소스
-                contentDescription = "Profile Image",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
+
+            // 비밀번호 변경 섹션
+            SectionTitle("비밀번호 변경")
+            Spacer(modifier = Modifier.height(15.dp))
+            CustomTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("비밀번호") },
+                placeholder = { Text("입력해주세요.") }
             )
-        }
-        else{
-            Image(
-                painter = painterResource(id = R.drawable.profile2), // 프로필 이미지 리소스
-                contentDescription = "Profile Image",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
+            Spacer(modifier = Modifier.height(16.dp))
+            CustomTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("비밀번호 확인") },
+                placeholder = { Text("다시 입력해주세요.") }
             )
-        }
 
-        Spacer(modifier = Modifier.height(15.dp))
-        Button(
-            onClick = { imgchange = !imgchange },
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = Color.LightGray
-            )
-        ) {
-            Text("이미지 등록")
-        }
+            Spacer(modifier = Modifier.height(30.dp))
 
-        Spacer(modifier = Modifier.height(64.dp))
-
-
-        // 비밀번호 변경 섹션
-        SectionTitle("비밀번호 변경")
-        Spacer(modifier = Modifier.height(15.dp))
-        CustomTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("비밀번호") },
-            placeholder = { Text("입력해주세요.") }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        CustomTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("비밀번호 확인") },
-            placeholder = { Text("다시 입력해주세요.") }
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Button(
-            onClick = {
-                if (password == confirmPassword) {
-                    FirebaseAuth.getInstance().currentUser?.updatePassword(password)
-                    showSuccessDialog = true
-                    password = ""
-                    confirmPassword = ""
-                } else {
-                    showErrorDialog = true
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            Text("비밀번호 변경")
-        }
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // 로그아웃 버튼
-        Button(
-            onClick = {
-                FirebaseAuth.getInstance().signOut()
-                navController.navigate("Start")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            Text("로그아웃")
-        }
-
-        if (showErrorDialog) {
-            AlertDialog(
-                onDismissRequest = { showErrorDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showErrorDialog = false }) {
-                        Text("OK")
+            Button(
+                onClick = {
+                    if (password == confirmPassword) {
+                        FirebaseAuth.getInstance().currentUser?.updatePassword(password)
+                        showSuccessDialog = true
+                        password = ""
+                        confirmPassword = ""
+                    } else {
+                        showErrorDialog = true
                     }
                 },
-                title = { Text("오류") },
-                text = { Text("비밀번호가 일치하지 않습니다. 다시 입력해주세요.") }
-            )
-        }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("비밀번호 변경")
+            }
+            Spacer(modifier = Modifier.height(30.dp))
 
-        if (showSuccessDialog) {
-            AlertDialog(
-                onDismissRequest = { showSuccessDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showSuccessDialog = false }) {
-                        Text("OK")
-                    }
+            // 로그아웃 버튼
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate("Start")
                 },
-                title = { Text("성공") },
-                text = { Text("비밀번호가 성공적으로 변경되었습니다.") }
-            )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("로그아웃")
+            }
+
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showErrorDialog = false }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("오류") },
+                    text = { Text("비밀번호가 일치하지 않습니다. 다시 입력해주세요.") }
+                )
+            }
+
+            if (showSuccessDialog) {
+                AlertDialog(
+                    onDismissRequest = { showSuccessDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showSuccessDialog = false }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("성공") },
+                    text = { Text("비밀번호가 성공적으로 변경되었습니다.") }
+                )
+            }
+
+            if (profSuccessDialog) {
+                AlertDialog(
+                    onDismissRequest = { profSuccessDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { profSuccessDialog = false }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("성공") },
+                    text = { Text(" 프로필이 성공적으로 변경되었습니다.") }
+                )
+            }
         }
     }
+
+
 }
 
 @Composable
