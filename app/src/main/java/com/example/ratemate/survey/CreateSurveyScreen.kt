@@ -61,12 +61,17 @@ fun CreateSurveyScreen(navController: NavHostController) {
     var surveyTitle by remember { mutableStateOf("") }
     val questionsList = remember { mutableStateListOf<QuestionItem>() }
 
-    val onNavigateToResult: (String) -> Unit = { /* Handle navigation to result */ }
-//    val onNavigateBack: () -> Unit = { /* Handle navigation back */ }
+    var isSubmitEnabled by remember { mutableStateOf(false) }
+
+    fun validateForm() {
+        isSubmitEnabled = surveyTitle.isNotBlank() && questionsList.all { questionItem ->
+            questionItem.question.isNotBlank() && questionItem.answers.all { it.isNotBlank() }
+        }
+    }
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(title = "등록하기", onNavigateBack = { /* Handle navigation back */ })
+            CommonTopAppBar(title = "등록하기", onNavigateBack = { navController.popBackStack() })
         }
     ) { paddingValues ->
         Column(
@@ -93,15 +98,28 @@ fun CreateSurveyScreen(navController: NavHostController) {
                         val updatedAnswers = questionItem.answers.toMutableList()
                         updatedAnswers.add("")
                         questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                        validateForm()
                     },
                     onRemoveAnswer = { answerIndex ->
                         val updatedAnswers = questionItem.answers.toMutableList()
                         updatedAnswers.removeAt(answerIndex)
                         questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                        validateForm()
                     },
                     onRemoveQuestion = {
                         Log.d("index", index.toString())
                         questionsList.removeAt(index)
+                        validateForm()
+                    },
+                    onQuestionChange = { question ->
+                        questionsList[index] = questionItem.copy(question = question)
+                        validateForm()
+                    },
+                    onAnswerChange = { answerIndex, answer ->
+                        val updatedAnswers = questionItem.answers.toMutableList()
+                        updatedAnswers[answerIndex] = answer
+                        questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                        validateForm()
                     }
                 )
             }
@@ -167,16 +185,15 @@ fun CreateSurveyScreen(navController: NavHostController) {
                         comments = mutableListOf()
                     )
                     viewModel.addSurvey(surveyData)
-////                    navController.navigate("SurveyResult/${surveyData.surveyId}")
-////                    navController.navigate("SurveyResult")
-//                    navController.navigate("Start") {
-//                        popUpTo("Start") { inclusive = true }
+//                    navController.navigate(SurveyNavRoutes.Result.createRoute(surveyData.surveyId)) {
+//                        popUpTo(SurveyNavRoutes.Create.route) { inclusive = true }
 //                    }
                 },
+                enabled = isSubmitEnabled,
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 0.dp),
                 colors = ButtonDefaults.buttonColors(
-                    colorResource(id = R.color.main_blue)
+                    if (isSubmitEnabled) colorResource(id = R.color.main_blue) else colorResource(id = R.color.gray_500)
                 ),
             ) {
                 Text(
@@ -196,7 +213,9 @@ fun QuestionEditor(
     question: QuestionItem,
     onAddAnswer: () -> Unit,
     onRemoveAnswer: (Int) -> Unit,
-    onRemoveQuestion: () -> Unit
+    onRemoveQuestion: () -> Unit,
+    onQuestionChange: (String) -> Unit,
+    onAnswerChange: (Int, String) -> Unit
 ) {
     var questionText by remember { mutableStateOf(question.question) }
     val answerTexts = remember { mutableStateListOf<String>().apply { addAll(question.answers) } }
@@ -208,7 +227,7 @@ fun QuestionEditor(
                 value = questionText,
                 onValueChange = {
                     questionText = it
-                    question.question = it  // 바로 상태 업데이트
+                    onQuestionChange(it)
                 },
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next,
@@ -250,7 +269,7 @@ fun QuestionEditor(
                     value = answerText,
                     onValueChange = {
                         answerTexts[index] = it
-                        question.answers[index] = it  // 바로 상태 업데이트
+                        onAnswerChange(index, it)
                     },
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Next,
@@ -263,7 +282,6 @@ fun QuestionEditor(
                 IconButton(
                     onClick = {
                         answerTexts.removeAt(index)
-                        question.answers.removeAt(index)
                         onRemoveAnswer(index)
                     },
                     enabled = answerTexts.size > 1 // 답변 옵션이 1개만 있을 때는 삭제 버튼 비활성화
@@ -278,7 +296,6 @@ fun QuestionEditor(
                 .height(40.dp),
             onClick = {
                 answerTexts.add("")
-                question.answers.add("")
                 onAddAnswer()
             },
             colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
@@ -289,15 +306,3 @@ fun QuestionEditor(
         Divider(modifier = Modifier.padding(vertical = 8.dp))
     }
 }
-
-//@Preview
-//@Composable
-//private fun PreviewCreateScreen() {
-//    CreateSurveyScreen(
-//        onSubmit = { title, questions ->
-//            println("Title: $title")
-//            questions.forEach { println("Question: ${it.question}, Answers: ${it.answers.joinToString()}, Type: ${it.questionType}") }
-//        },
-//        onNavigateBack = { /* Handle navigation back */ }
-//    )
-//}
