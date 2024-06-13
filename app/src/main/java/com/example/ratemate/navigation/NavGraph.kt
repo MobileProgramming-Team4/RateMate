@@ -10,6 +10,8 @@ import com.example.ratemate.home.HomeScreen
 import com.example.ratemate.login.LoginScreen
 import com.example.ratemate.login.RegisterScreen
 import com.example.ratemate.login.StartScreen
+import com.example.ratemate.survey.CreateSurveyScreen
+import com.example.ratemate.survey.SurveyResultScreen
 
 sealed class Route(val route: String){
     object Start: Route("Start")
@@ -45,6 +47,13 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
         }
         composable("Home") {
             HomeScreen(navController)
+        }
+
+        composable(Route.CreateSurvey.route) {
+            CreateSurveyScreen(navController)
+        }
+        composable(Route.SurveyResult.route) {
+            SurveyResultScreen()
         }
     }
 }

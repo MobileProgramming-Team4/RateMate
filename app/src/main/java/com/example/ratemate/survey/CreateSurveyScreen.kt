@@ -1,6 +1,7 @@
 package com.example.ratemate.survey
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -185,9 +186,14 @@ fun CreateSurveyScreen(navController: NavHostController) {
                         comments = mutableListOf()
                     )
                     viewModel.addSurvey(surveyData)
-//                    navController.navigate(SurveyNavRoutes.Result.createRoute(surveyData.surveyId)) {
-//                        popUpTo(SurveyNavRoutes.Create.route) { inclusive = true }
-//                    }
+
+                    // 토스트 메시지 표시
+                    Toast.makeText(context, "설문조사 등록이 완료되었습니다", Toast.LENGTH_SHORT).show()
+
+                    // 모든 입력 필드 초기화
+                    surveyTitle = ""
+                    questionsList.clear()
+                    validateForm()
                 },
                 enabled = isSubmitEnabled,
                 modifier = Modifier.fillMaxWidth(),

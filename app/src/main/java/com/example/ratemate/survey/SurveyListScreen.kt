@@ -1,11 +1,35 @@
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +54,8 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun SurveyListScreen(navController: NavController) {
     val surveyRepository = SurveyV2Repository()
-    val surveyViewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(surveyRepository))
+    val surveyViewModel: SurveyV2ViewModel =
+        viewModel(factory = SurveyV2ViewModelFactory(surveyRepository))
     val surveys by surveyViewModel.surveys.collectAsState(initial = emptyList())
 
     val userRepository = UserRepository()
@@ -85,7 +110,11 @@ fun SurveyListScreen(navController: NavController) {
             )
         },
         content = { paddingValues ->
-            Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(16.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -99,14 +128,24 @@ fun SurveyListScreen(navController: NavController) {
                     )
                     Box {
                         IconButton(onClick = { expanded = !expanded }) {
-                            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "정렬", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "정렬",
+                                tint = Color.Black
+                            )
                         }
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("최신순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
+                                text = {
+                                    Text(
+                                        "최신순",
+                                        fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
                                 onClick = {
                                     surveyViewModel.sortSurveys(SortType.LATEST)
                                     sortText = "최신순"
@@ -114,7 +153,13 @@ fun SurveyListScreen(navController: NavController) {
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("좋아요 많은 순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
+                                text = {
+                                    Text(
+                                        "좋아요 많은 순",
+                                        fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
                                 onClick = {
                                     surveyViewModel.sortSurveys(SortType.MOST_LIKED)
                                     sortText = "좋아요 많은 순"
@@ -122,7 +167,13 @@ fun SurveyListScreen(navController: NavController) {
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("답변 많은 순", fontFamily = NotoSansKr, fontWeight = FontWeight.Bold) },
+                                text = {
+                                    Text(
+                                        "답변 많은 순",
+                                        fontFamily = NotoSansKr,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
                                 onClick = {
                                     surveyViewModel.sortSurveys(SortType.MOST_RESPONDED)
                                     sortText = "답변 많은 순"
@@ -153,14 +204,26 @@ fun SurveyListScreen(navController: NavController) {
 
 @Composable
 fun SurveyItem(survey: SurveyV2, navController: NavController) {
+    val auth = FirebaseAuth.getInstance()
+    val uid = auth.currentUser?.uid
+
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)
-        .clickable { navController.navigate("answerSurvey/${survey.surveyId}") }) {
+        .clickable {
+//            if (uid == survey.creatorId) {
+            navController.navigate("SurveyResult/${survey.surveyId}")
+//            } else {
+//                navController.navigate("answerSurvey/${survey.surveyId}")
+//            }
+        }) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
             Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.response.size}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.response.size}",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
