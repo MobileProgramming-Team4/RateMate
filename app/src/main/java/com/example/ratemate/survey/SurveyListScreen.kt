@@ -204,19 +204,10 @@ fun SurveyListScreen(navController: NavController) {
 
 @Composable
 fun SurveyItem(survey: SurveyV2, navController: NavController) {
-    val auth = FirebaseAuth.getInstance()
-    val uid = auth.currentUser?.uid
-
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)
-        .clickable {
-//            if (uid == survey.creatorId) {
-            navController.navigate("SurveyResult/${survey.surveyId}")
-//            } else {
-//                navController.navigate("answerSurvey/${survey.surveyId}")
-//            }
-        }) {
+        .clickable { navController.navigate("AnswerSurvey/${survey.surveyId}") }) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
             Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)

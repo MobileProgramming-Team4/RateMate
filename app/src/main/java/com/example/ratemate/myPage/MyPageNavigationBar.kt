@@ -1,7 +1,6 @@
 package com.example.ratemate.myPage
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -16,7 +15,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.ratemate.home.SurveyResultScreen
-import com.example.ratemate.navigation.Route
 
 sealed class MyPageNavRoutes (val route: String) {
     object Quest : MyPageNavRoutes("Quest")
