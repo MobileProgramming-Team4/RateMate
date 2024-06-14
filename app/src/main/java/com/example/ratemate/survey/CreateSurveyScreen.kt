@@ -68,20 +68,16 @@ fun CreateSurveyScreen(navController: NavHostController) {
     var surveyTitle by remember { mutableStateOf("") }
     val questionsList = remember { mutableStateListOf<QuestionItem>() }
 
-    val onNavigateToResult: (String) -> Unit = { /* Handle navigation to result */ }
-//    val onNavigateBack: () -> Unit = { /* Handle navigation back */ }
-
     var addSurvey by remember { mutableStateOf(false) }
 
-
-    //유저 정보 가져오기
+    // 유저 정보 가져오기
     val auth = FirebaseAuth.getInstance()
-    val userUid = auth.currentUser?.uid?: ""
-    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    val userUid = auth.currentUser?.uid ?: ""
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(userUid)
     val user by userViewModel.user.collectAsState(initial = null)
 
-    if (user == null){
+    if (user == null) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -89,8 +85,7 @@ fun CreateSurveyScreen(navController: NavHostController) {
         ) {
             Text("Loading...")
         }
-    }
-    else{
+    } else {
         Scaffold(
             topBar = {
                 CommonTopAppBar(title = "등록하기", onNavigateBack = {
@@ -129,8 +124,9 @@ fun CreateSurveyScreen(navController: NavHostController) {
                             questionsList[index] = questionItem.copy(answers = updatedAnswers)
                         },
                         onRemoveQuestion = {
-                            Log.d("index", index.toString())
+                            Log.d("questionList", questionsList.toString())
                             questionsList.removeAt(index)
+                            Log.d("questionList", questionsList.toString())
                         }
                     )
                 }
@@ -188,30 +184,24 @@ fun CreateSurveyScreen(navController: NavHostController) {
                     )
                 }
 
-
-                if (addSurvey){
+                if (addSurvey) {
                     addSurvey = false
 
                     var check by remember { mutableStateOf("success") }
 
-
-                    if (surveyTitle == ""){
+                    if (surveyTitle == "") {
                         check = "제목이 비어있습니다"
-                    }
-                    else if (questionsList.size == 0){
+                    } else if (questionsList.size == 0) {
                         check = "질문이 비어있습니다"
-                    }
-                    else if (questionsList.any { it.question == "" }){
+                    } else if (questionsList.any { it.question == "" }) {
                         check = "질문이 비어있습니다"
-                    }
-                    else if (questionsList.any { it.answers.size < 2 }){
+                    } else if (questionsList.any { it.answers.size < 2 }) {
                         check = "답변이 2개 이상이어야 합니다"
-                    }
-                    else if (questionsList.any { it.answers.any { it == "" } }){
+                    } else if (questionsList.any { it.answers.any { it == "" } }) {
                         check = "답변이 비어있습니다"
                     }
 
-                    if (check == "success"){
+                    if (check == "success") {
                         Toast.makeText(context, "설문조사가 등록되었습니다.", Toast.LENGTH_SHORT).show()
 
                         val surveyData = SurveyV2(
@@ -239,20 +229,13 @@ fun CreateSurveyScreen(navController: NavHostController) {
                         viewModel.addSurvey(surveyData)
                         userViewModel.addSurveyToCreated(userUid, surveyData.surveyId)
                         navController.navigate("home")
-                    }
-                    else {
+                    } else {
                         Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
                     }
-
-
-
                 }
-
-
             }
         }
     }
-
 }
 
 @Composable
