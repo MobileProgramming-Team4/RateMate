@@ -28,6 +28,10 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
     private val _survey = MutableStateFlow<SurveyV2?>(null)
     val survey: StateFlow<SurveyV2?> = _survey.asStateFlow()
 
+    private val _isSurveyLoaded = MutableStateFlow(false)
+    val isSurveyLoaded: StateFlow<Boolean> = _isSurveyLoaded.asStateFlow()
+
+
     fun addSurvey(survey: SurveyV2) {
         repository.addSurvey(survey)
     }
@@ -50,8 +54,12 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
 
     fun getSurvey(surveyId: String) {
         viewModelScope.launch {
+
+            _isSurveyLoaded.value = false
+
             repository.getSurvey(surveyId).collect {
                 _survey.value = it
+                _isSurveyLoaded.value = true
             }
         }
     }

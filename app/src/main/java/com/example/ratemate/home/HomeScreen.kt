@@ -41,19 +41,6 @@ fun HomeScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-
-//            Row {
-//                val image: Painter = painterResource(id = R.drawable.logo_only)
-//                Image(
-//                    painter = image,
-//                    contentDescription = "Logo",
-//                    modifier = Modifier
-//                        .size(20.dp)
-//                        .clip(RoundedCornerShape(30.dp))
-//                )
-//                Text(text = "Home Screen")
-//            }
-
             // HomeNavigationHost should be placed in the content slot
             HomeNavigationHost(navController = HomenavController, startnavController = navController )
         }
