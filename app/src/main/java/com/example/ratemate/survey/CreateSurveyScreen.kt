@@ -1,10 +1,12 @@
 package com.example.ratemate.survey
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +50,13 @@ import com.example.ratemate.data.Like
 import com.example.ratemate.data.QnA
 import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.repository.SurveyV2Repository
+import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 // 설문조사 생성 화면
 @Composable
@@ -64,131 +71,188 @@ fun CreateSurveyScreen(navController: NavHostController) {
     val onNavigateToResult: (String) -> Unit = { /* Handle navigation to result */ }
 //    val onNavigateBack: () -> Unit = { /* Handle navigation back */ }
 
-    Scaffold(
-        topBar = {
-            CommonTopAppBar(title = "등록하기", onNavigateBack = { /* Handle navigation back */ })
-        }
-    ) { paddingValues ->
+    var addSurvey by remember { mutableStateOf(false) }
+
+
+    //유저 정보 가져오기
+    val auth = FirebaseAuth.getInstance()
+    val userUid = auth.currentUser?.uid?: ""
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    userViewModel.getUser(userUid)
+    val user by userViewModel.user.collectAsState(initial = null)
+
+    if (user == null){
         Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(20.dp)
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CommonTextField(
-                label = "설문조사 제목",
-                value = surveyTitle,
-                onValueChange = { surveyTitle = it },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done,
-                    keyboardType = KeyboardType.Text
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            questionsList.forEachIndexed { index, questionItem ->
-                QuestionEditor(
-                    question = questionItem,
-                    onAddAnswer = {
-                        val updatedAnswers = questionItem.answers.toMutableList()
-                        updatedAnswers.add("")
-                        questionsList[index] = questionItem.copy(answers = updatedAnswers)
-                    },
-                    onRemoveAnswer = { answerIndex ->
-                        val updatedAnswers = questionItem.answers.toMutableList()
-                        updatedAnswers.removeAt(answerIndex)
-                        questionsList[index] = questionItem.copy(answers = updatedAnswers)
-                    },
-                    onRemoveQuestion = {
-                        Log.d("index", index.toString())
-                        questionsList.removeAt(index)
-                    }
-                )
+            Text("Loading...")
+        }
+    }
+    else{
+        Scaffold(
+            topBar = {
+                CommonTopAppBar(title = "등록하기", onNavigateBack = {
+                    navController.navigate("home")
+                })
             }
-
-            Row(
+        ) { paddingValues ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(paddingValues)
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Button(
-                    modifier = Modifier
-                        .width(168.dp)
-                        .height(40.dp),
-                    onClick = {
-                        questionsList.add(QuestionItem("", mutableListOf(""), "single"))
-                    },
-                    colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
-                    contentPadding = PaddingValues(vertical = 0.dp)
-                ) {
-                    Text("단일 응답 질문 추가")
+                CommonTextField(
+                    label = "설문조사 제목",
+                    value = surveyTitle,
+                    onValueChange = { surveyTitle = it },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Text
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                questionsList.forEachIndexed { index, questionItem ->
+                    QuestionEditor(
+                        question = questionItem,
+                        onAddAnswer = {
+                            val updatedAnswers = questionItem.answers.toMutableList()
+                            updatedAnswers.add("")
+                            questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                        },
+                        onRemoveAnswer = { answerIndex ->
+                            val updatedAnswers = questionItem.answers.toMutableList()
+                            updatedAnswers.removeAt(answerIndex)
+                            questionsList[index] = questionItem.copy(answers = updatedAnswers)
+                        },
+                        onRemoveQuestion = {
+                            Log.d("index", index.toString())
+                            questionsList.removeAt(index)
+                        }
+                    )
                 }
-                Button(
+
+                Row(
                     modifier = Modifier
-                        .width(168.dp)
-                        .height(40.dp),
-                    onClick = {
-                        questionsList.add(QuestionItem("", mutableListOf(""), "multiple"))
-                    },
-                    colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
-                    contentPadding = PaddingValues(vertical = 0.dp)
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .width(168.dp)
+                            .height(40.dp),
+                        onClick = {
+                            questionsList.add(QuestionItem("", mutableListOf(""), "single"))
+                        },
+                        colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
+                        contentPadding = PaddingValues(vertical = 0.dp)
+                    ) {
+                        Text("단일 응답 질문 추가")
+                    }
+                    Button(
+                        modifier = Modifier
+                            .width(168.dp)
+                            .height(40.dp),
+                        onClick = {
+                            questionsList.add(QuestionItem("", mutableListOf(""), "multiple"))
+                        },
+                        colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
+                        contentPadding = PaddingValues(vertical = 0.dp)
+                    ) {
+                        Text(
+                            "복수 응답 질문 추가",
+                            fontFamily = NotoSansKr,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { addSurvey = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        colorResource(id = R.color.main_blue)
+                    ),
                 ) {
                     Text(
-                        "복수 응답 질문 추가",
+                        "설문조사 등록",
                         fontFamily = NotoSansKr,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.white)
                     )
                 }
-            }
 
-            Button(
-                onClick = {
-                    val surveyData = SurveyV2(
-                        surveyId = "", // 필요시 설정
-                        creatorId = "", // 필요시 설정
-                        title = surveyTitle,
-                        content = "", // 필요시 설정
-                        likes = Like(),
-                        numOfComments = 0,
-                        createdDate = "", // 필요시 설정
-                        modifiedDate = "", // 필요시 설정
-                        status = "active",
-                        qnA = questionsList.mapIndexed { index, questionItem ->
-                            QnA(
-                                order = index + 1,
-                                question = questionItem.question,
-                                answerList = questionItem.answers,
-                                answerCountList = List(questionItem.answers.size) { 0 },
-                                questionType = questionItem.questionType
-                            )
-                        }.toMutableList(),
-                        response = mutableListOf(),
-                        comments = mutableListOf()
-                    )
-                    viewModel.addSurvey(surveyData)
-////                    navController.navigate("SurveyResult/${surveyData.surveyId}")
-////                    navController.navigate("SurveyResult")
-//                    navController.navigate("Start") {
-//                        popUpTo("Start") { inclusive = true }
-//                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 0.dp),
-                colors = ButtonDefaults.buttonColors(
-                    colorResource(id = R.color.main_blue)
-                ),
-            ) {
-                Text(
-                    "설문조사 등록",
-                    fontFamily = NotoSansKr,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.white)
-                )
+
+                if (addSurvey){
+                    addSurvey = false
+
+                    var check by remember { mutableStateOf("success") }
+
+
+                    if (surveyTitle == ""){
+                        check = "제목이 비어있습니다"
+                    }
+                    else if (questionsList.size == 0){
+                        check = "질문이 비어있습니다"
+                    }
+                    else if (questionsList.any { it.question == "" }){
+                        check = "질문이 비어있습니다"
+                    }
+                    else if (questionsList.any { it.answers.size < 2 }){
+                        check = "답변이 2개 이상이어야 합니다"
+                    }
+                    else if (questionsList.any { it.answers.any { it == "" } }){
+                        check = "답변이 비어있습니다"
+                    }
+
+                    if (check == "success"){
+                        Toast.makeText(context, "설문조사가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+
+                        val surveyData = SurveyV2(
+                            surveyId = "", // 필요시 설정
+                            creatorId = user!!.email, // 필요시 설정
+                            title = surveyTitle,
+                            content = "", // 필요시 설정
+                            likes = Like(),
+                            numOfComments = 0,
+                            createdDate = "", // 필요시 설정
+                            modifiedDate = "", // 필요시 설정
+                            status = "active",
+                            qnA = questionsList.mapIndexed { index, questionItem ->
+                                QnA(
+                                    order = index + 1,
+                                    question = questionItem.question,
+                                    answerList = questionItem.answers,
+                                    answerCountList = List(questionItem.answers.size) { 0 },
+                                    questionType = questionItem.questionType
+                                )
+                            }.toMutableList(),
+                            response = mutableListOf(),
+                            comments = mutableListOf()
+                        )
+                        viewModel.addSurvey(surveyData)
+                        userViewModel.addSurveyToCreated(userUid, surveyData.surveyId)
+                        navController.navigate("home")
+                    }
+                    else {
+                        Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
+                    }
+
+
+
+                }
+
+
             }
         }
     }
+
 }
 
 @Composable
@@ -262,9 +326,14 @@ fun QuestionEditor(
                 )
                 IconButton(
                     onClick = {
-                        answerTexts.removeAt(index)
-                        question.answers.removeAt(index)
-                        onRemoveAnswer(index)
+                        try {
+                            answerTexts.removeAt(index)
+                            question.answers.removeAt(index)
+                            onRemoveAnswer(index)
+                        } catch (e: IndexOutOfBoundsException) {
+                            Log.d("설문 생성", "Index out of bounds")
+                        }
+
                     },
                     enabled = answerTexts.size > 1 // 답변 옵션이 1개만 있을 때는 삭제 버튼 비활성화
                 ) {
@@ -279,7 +348,7 @@ fun QuestionEditor(
             onClick = {
                 answerTexts.add("")
                 question.answers.add("")
-                onAddAnswer()
+//                onAddAnswer()
             },
             colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
             contentPadding = PaddingValues(vertical = 0.dp)

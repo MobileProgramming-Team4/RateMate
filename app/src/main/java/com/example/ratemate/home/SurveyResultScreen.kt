@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.ratemate.R
 import com.example.ratemate.data.Comment
 import com.example.ratemate.data.Dislike
@@ -101,7 +102,9 @@ import java.util.Date
 import java.util.UUID
 
 @Composable
-fun SurveyResultScreen(SurveyID: String?){
+fun SurveyResultScreen(SurveyID: String?, navController: NavController){
+    Log.d("설문결과 화면", "SurveyID : $SurveyID")
+
     //유저 정보 가져오기
     val auth = FirebaseAuth.getInstance()
     val userUid = auth.currentUser?.uid
@@ -118,7 +121,9 @@ fun SurveyResultScreen(SurveyID: String?){
     if (surveyId != null) {
         surveyV2ViewModel.getSurvey(surveyId)
     }
+
     val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = null)
+
 
 
 
@@ -135,7 +140,9 @@ fun SurveyResultScreen(SurveyID: String?){
 //    }
 
     if (user != null && surveyResult != null) {
-        ShowSurveyResultScreen(user!!, surveyResult!!)
+        Log.d("설문결과 화면", "user : $user")
+        Log.d("설문결과 화면", "surveyResult : $surveyResult")
+        ShowSurveyResultScreen(user!!, surveyResult!!, navController)
     }
     else {
         Column(
@@ -149,218 +156,282 @@ fun SurveyResultScreen(SurveyID: String?){
 }
 
 @Composable
-fun ShowSurveyResultScreen(user: User, surveyResult : SurveyV2) {
+fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavController) {
 
-    val content = surveyResult.qnA
-    val userChoice = surveyResult.response.find { it.userId == user.userId }?.answer ?: listOf()
 
-    var commentList by remember { mutableStateOf(surveyResult.comments.toMutableList()) }
-    var sortComment by remember { mutableStateOf("인기순") }
-    var likes by remember { mutableIntStateOf(surveyResult.likes.count) }
-    var numberOfComment by remember { mutableIntStateOf(surveyResult.comments.size) }
-    val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val isMySurvey = user.email == surveyResult.creatorId
-    var showDialog by remember { mutableStateOf(false) }
 
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
 
 
-    //해당 유저가 좋아요를 눌렀는지 확인
-    var isLiked by remember {
-        mutableStateOf(surveyResult.likes.usersWhoLiked.find { it == user.userId } != null)
-    }
 
-    //좋아요를 눌렀을때 실행될 함수
-    val clickLikes = {
-        if (isLiked) {
-            isLiked = false
-            likes -= 1
-        } else {
-            isLiked = true
-            likes += 1
-        }
-    }
+    surveyV2ViewModel.getSurvey(Result.surveyId)
+    val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = Result)
 
-    //인기순 버튼 클릭시 실행될 함수
-    val clickSortByLikes = {
-        sortComment = "인기순"
-        commentList = commentList.sortedByDescending { it.like.count }.toMutableList()
-    }
 
-    //최신순 버튼 클릭시 실행될 함수
-    val clickSortByDate = {
-        sortComment = "최신순"
-        commentList = commentList.sortedByDescending { Date(it.createdDate) }.toMutableList()
-    }
+    surveyResult?.let{
+        val content = surveyResult!!.qnA
+        val userChoice = surveyResult!!.response.find { it.userId == user.userId }?.answer ?: listOf()
 
-    //댓글 추가 함수
-    @Composable
-    fun addComment(comment: String) {
-        val newComment = Comment(
-            commentId = UUID.randomUUID().toString(),
-            userId = user.email,
-            text = comment,
-            createdDate = Date().toString(),
-            profileImage = user.profileImage.toString(),
-            like = Like(),
-            dislike = Dislike()
-        )
+        var commentList by remember { mutableStateOf(surveyResult!!.comments.toMutableList()) }
+        var sortComment by remember { mutableStateOf("인기순") }
+        var likes by remember { mutableIntStateOf(surveyResult!!.likes.count) }
+        var numberOfComment by remember { mutableIntStateOf(surveyResult!!.comments.size) }
+        val context = LocalContext.current
+        val focusManager = LocalFocusManager.current
+        val isMySurvey = user.email == surveyResult!!.creatorId
+        var showDialog by remember { mutableStateOf(false) }
 
-        //댓글 추가시 유저 포인트 1 증가
-        val auth = FirebaseAuth.getInstance()
-        val userUid = auth.currentUser?.uid
+
         val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
-        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
 
-        surveyResult.comments.add(newComment)
-        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to surveyResult.comments))
-        surveyResult.numOfComments += 1
-        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("numOfComments" to surveyResult.numOfComments))
-        commentList = surveyResult.comments.toMutableList()
+        var newComment by remember { mutableStateOf("") }
 
-        if (sortComment == "인기순") {
-            clickSortByLikes()
-        } else {
-            clickSortByDate()
+
+        //해당 유저가 좋아요를 눌렀는지 확인
+        var isLiked by remember {
+            mutableStateOf(surveyResult!!.likes.usersWhoLiked.find { it == user.userId } != null)
         }
 
-    }
-
-
-    //댓글 입력 버튼 클릭시 실행될 함수
-    val onClickSend = @Composable { comment: String ->
-        if (comment == "") {
-            Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
-        } else {
-            addComment(comment)
-            Toast.makeText(context, "댓글이 등록되었습니다", Toast.LENGTH_SHORT).show()
+        //좋아요를 눌렀을때 실행될 함수
+        val clickLikes = {
+            if (isLiked) {
+                isLiked = false
+                likes -= 1
+            } else {
+                isLiked = true
+                likes += 1
+            }
         }
-    }
 
-    val editSurvey = {
-        /*Todo*/
-        Toast.makeText(context, "설문 수정", Toast.LENGTH_SHORT).show()
-    }
+        //인기순 버튼 클릭시 실행될 함수
+        val clickSortByLikes = {
+            sortComment = "인기순"
+            commentList = commentList.sortedByDescending { it.like.count }.toMutableList()
+        }
 
-    val removeSurvey = {
-        if (user.email != surveyResult.creatorId) {
-            Toast.makeText(context, "에러 : 권한이 없습니다.", Toast.LENGTH_SHORT).show()
-        } else{
-            showDialog = true
+        //최신순 버튼 클릭시 실행될 함수
+        val clickSortByDate = {
+            sortComment = "최신순"
+            commentList = commentList.sortedByDescending { Date(it.createdDate) }.toMutableList()
+        }
+
+
+        var changedComment by remember { mutableStateOf(false) }
+
+        //댓글 추가 함수
+        @Composable
+        fun addComment(comment: String) {
+            val newComment = Comment(
+                commentId = UUID.randomUUID().toString(),
+                userId = user.email,
+                text = comment,
+                createdDate = Date().toString(),
+                profileImage = user.profileImage.toString(),
+                like = Like(),
+                dislike = Dislike()
+            )
+
+            //댓글 추가시 유저 포인트 1 증가
+            val auth = FirebaseAuth.getInstance()
+            val userUid = auth.currentUser?.uid
+            val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+            userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
+
+            surveyResult!!.comments.add(newComment)
+            surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("comments" to surveyResult!!.comments))
+            numberOfComment = surveyResult!!.comments.size
+            surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
+            commentList = surveyResult!!.comments.toMutableList()
+
+            if (sortComment == "인기순") {
+                clickSortByLikes()
+            } else {
+                clickSortByDate()
+            }
 
         }
-    }
 
-    //설문 수정 및 삭제
-    if(showDialog){
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("설문 삭제") },
-            text = { Text("설문을 삭제하시겠습니까?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                        /*Todo*/
-                        Toast.makeText(context, "설문 삭제", Toast.LENGTH_SHORT).show()
+
+
+        //댓글 입력 버튼 클릭시 실행될 함수
+        val onClickSend = @Composable { comment: String ->
+            if (comment == "") {
+                Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
+            } else if (newComment != ""){
+                Toast.makeText(context, "잠시 후 다시 시도해 주세요", Toast.LENGTH_SHORT).show()
+            }
+
+            else {
+                newComment = comment
+                Toast.makeText(context, "댓글이 등록되었습니다", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        //댓글 수 동기화
+        LaunchedEffect(key1 = commentList, key2 = newComment) {
+            changedComment = true
+
+        }
+
+        if (changedComment) {
+            if (newComment != "") {
+                surveyV2ViewModel.getSurvey(Result.surveyId)
+                val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
+                if (isSurveyLoaded) {
+                    changedComment = false
+                    if (newComment != "") {
+                        addComment(newComment)
+                        newComment = ""
                     }
-                ) {
-                    Text("확인")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog = false }
-                ) {
-                    Text("취소")
                 }
             }
-        )
-    }
 
-    var showLog = false
-    //좋아요, 싫어요 버튼 클릭시 실행될 함수
-    val onClickLikeDislike = {
-        showLog = true
-
-    }
-    if (showLog) {
-        showLog = false
-        Log.d("댓글", "리스트 : $commentList")
-    }
-
-
-    //좋아요 눌렀을 때 동기화
-    LaunchedEffect(key1 = likes, key2 = isLiked) {
-        if (isLiked) {
-            surveyResult.likes.usersWhoLiked.find { it == user.userId } ?: surveyResult.likes.usersWhoLiked.add(user.userId)
-            surveyResult.likes.count = likes
-        } else {
-            surveyResult.likes.usersWhoLiked.remove(user.userId)
-            surveyResult.likes.count = likes
         }
 
-        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("likes" to surveyResult.likes))
+        val editSurvey = {
+            /*Todo*/
+            Toast.makeText(context, "설문 수정", Toast.LENGTH_SHORT).show()
+        }
 
-    }
+        val removeSurvey = {
+            if (user.email != surveyResult!!.creatorId) {
+                Toast.makeText(context, "에러 : 권한이 없습니다.", Toast.LENGTH_SHORT).show()
+            } else{
+                showDialog = true
 
-    //댓글 수 동기화
-    LaunchedEffect(key1 = commentList) {
-        numberOfComment = commentList.size
-        Log.d("댓글", "댓글 수 : $numberOfComment")
-        Log.d("댓글", "댓글 리스트 : $commentList")
+            }
+        }
 
-    }
+        //설문 수정 및 삭제
+        if(showDialog){
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("설문 삭제") },
+                text = { Text("설문을 삭제하시겠습니까?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            surveyV2ViewModel.deleteSurvey(surveyResult!!.surveyId)
+                            val userCreated = user.surveysCreated.toMutableList()
+                            userCreated.remove(surveyResult!!.surveyId)
+                            userViewModel.updateUser(user.userId, mapOf("surveysCreated" to userCreated))
+                            Toast.makeText(context, "설문 삭제", Toast.LENGTH_SHORT).show()
 
-    LaunchedEffect(Unit) {
-        clickSortByLikes()
-    }
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { showDialog = false }
+                    ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
+        var showLog = false
+        //좋아요, 싫어요 버튼 클릭시 실행될 함수
+        val onClickLikeDislike = {
+            showLog = true
 
-    //전체화면 Column
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(
-                onClick = { focusManager.clearFocus() },
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ),
-
-        ){
-
-
-        //제목, 작성자
-        val modifier1 = Modifier.height(40.dp)
-        ShowTitle(title = surveyResult.title, writer = surveyResult.creatorId,
-            isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
-            , removeSurvey = removeSurvey)
-
-        //내용
-        val modifier2 = Modifier.weight(7f)
-        ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
-
-        //좋아요, 댓글 수, 댓글 정렬 방법 버튼
-        val modifier3 = Modifier.height(40.dp)
-        ShowCounts(isLiked = isLiked, like = likes,
-            numberOfComment = numberOfComment, modifier = modifier3,
-            clickLikes = clickLikes, clickSortByLikes = clickSortByLikes,
-            clickSortByDate = clickSortByDate)
-
-        //댓글 리스트
-        Divider()
-        val modifier5 = Modifier.weight(5f)
-        ShowComments(user, comments = commentList, surveyResult = surveyResult,
-            modifier = modifier5)
-
-        //댓글 입력창
-        val modifier6 = Modifier.height(70.dp)
-        ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
+        }
+        if (showLog) {
+            showLog = false
+            Log.d("댓글", "리스트 : $commentList")
+        }
 
 
+        var changedLike by remember { mutableStateOf(false) }
+        //좋아요 눌렀을 때 동기화
+        LaunchedEffect(key1 = likes, key2 = isLiked) {
+            changedLike = true
+            Log.d("좋아요", "좋아요 : $likes")
+            Log.d("좋아요", "좋아요 누른 유저 : ${surveyResult!!.likes.usersWhoLiked}")
+
+        }
+
+        if (changedLike) {
+            surveyV2ViewModel.getSurvey(Result.surveyId)
+            val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
+            if (isSurveyLoaded) {
+                changedLike = false
+                if (isLiked && surveyResult!!.likes.usersWhoLiked.find { it == user.userId } == null) {
+                    var userWhoLiked = surveyResult!!.likes.usersWhoLiked.toMutableList()
+                    userWhoLiked.add(user.userId)
+                    surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("likes" to Like(
+                        surveyResult!!.likes.count+1, userWhoLiked)))
+                    likes = surveyResult!!.likes.count +1
+
+
+                } else if(!isLiked && surveyResult!!.likes.usersWhoLiked.find { it == user.userId } != null) {
+                    var userWhoLiked = surveyResult!!.likes.usersWhoLiked.toMutableList()
+                    userWhoLiked.remove(user.userId)
+                    surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("likes" to Like(
+                        surveyResult!!.likes.count-1, userWhoLiked)))
+
+                    likes = surveyResult!!.likes.count -1
+
+                }
+
+            }
+
+        }
+
+
+        LaunchedEffect(Unit) {
+            clickSortByLikes()
+        }
+
+
+        //전체화면 Column
+        Column (
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    onClick = { focusManager.clearFocus() },
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ),
+
+            ){
+
+
+            //제목, 작성자
+            val modifier1 = Modifier.height(40.dp)
+            ShowTitle(title = surveyResult!!.title, writer = surveyResult!!.creatorId,
+                isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
+                , removeSurvey = removeSurvey)
+
+            //내용
+            val modifier2 = Modifier.weight(7f)
+            ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
+
+            //좋아요, 댓글 수, 댓글 정렬 방법 버튼
+            val modifier3 = Modifier.height(40.dp)
+            ShowCounts(isLiked = isLiked, like = likes,
+                numberOfComment = numberOfComment, modifier = modifier3,
+                clickLikes = clickLikes, clickSortByLikes = clickSortByLikes,
+                clickSortByDate = clickSortByDate)
+
+            //댓글 리스트
+            Divider()
+            val modifier5 = Modifier.weight(5f)
+            ShowComments(user, comments = commentList, surveyResult = surveyResult!!,
+                modifier = modifier5)
+
+            //댓글 입력창
+            val modifier6 = Modifier.height(70.dp)
+            ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
+
+
+        }
     }
 
 }
@@ -483,30 +554,6 @@ fun AddExampleSurveyV2(){
     ))
     surveyV2ViewModel.addSurvey(SurveyV2)
 
-}
-
-
-@Composable
-fun getExampleResultContent() : List<ResultContent>{
-    val resultContent = mutableListOf<ResultContent>()
-
-    resultContent.add(ResultContent("question1", listOf("answer1", "answer2", "answer3", "answer4"), listOf(10, 20, 30, 40)))
-    resultContent.add(ResultContent("question2", listOf("answer2_1", "answer2_2", "answer2_3"), listOf(30, 10, 40)))
-    resultContent.add(ResultContent("question3", listOf("answer3_1", "answer3_2", "answer3_3", "answer3_4" , "answer3_5"), listOf(100, 20, 30, 0, 50)))
-    resultContent.add(ResultContent("question4", listOf("answer4_1", "answer4_2", "answer4_3", "answer4_4"), listOf(1, 2, 300, 2)))
-
-    return resultContent
-}
-
-fun getExampleUserChoice() : List<List<Int>>{
-    val userChoice = mutableListOf<List<Int>>()
-
-    userChoice.add(listOf(2))
-    userChoice.add(listOf(1,2))
-    userChoice.add(listOf(0,1))
-    userChoice.add(listOf(3))
-
-    return userChoice
 }
 
 @Composable
@@ -665,8 +712,16 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
 
             }
 
+            var userChoiceList = userChoice
+            if (userChoiceList.size < contentSize) {
+                userChoiceList = userChoiceList.toMutableList().apply {
+                    addAll(List(contentSize - userChoiceList.size) { listOf() })
+                }
+            }
+
+
             //설문 결과
-            ShowResult(result = content[currentContent], userChoice = userChoice[currentContent], modifier = Modifier.weight(8f))
+            ShowResult(result = content[currentContent], userChoice = userChoiceList[currentContent], modifier = Modifier.weight(8f))
 
         }
     }
@@ -828,7 +883,6 @@ fun ShowCounts(
                     )
             }
             offsetSize = Size(rowSize.width - buttonSize.width, 0F)
-            Log.d("설문결과 화면", "rowSize.width : ${rowSize.width}")
 
 
             DropdownMenu(

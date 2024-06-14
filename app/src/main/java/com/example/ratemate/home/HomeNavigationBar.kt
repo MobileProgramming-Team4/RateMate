@@ -38,10 +38,10 @@ fun HomeNavigationHost(navController: NavHostController, startnavController: Nav
             SurveyListScreen(navController)
         }
         composable(HomeNavRoutes.Question.route){
-            CreateSurveyScreen(navController)
+            CreateSurveyScreen(startnavController)
         }
         composable(HomeNavRoutes.MyPage.route){
-            MyPageScreen()
+            MyPageScreen(startnavController)
         }
         composable(HomeNavRoutes.Shop.route){
             StoreScreen(navController)

@@ -47,7 +47,8 @@ fun MyPageNavigationHost(navController: NavHostController) {
                 }
             )) {
             SurveyResultScreen(
-                it.arguments?.getString("SurveyID")
+                navController = navController,
+                SurveyID = it.arguments?.getString("SurveyID")
             )
         }
     }
