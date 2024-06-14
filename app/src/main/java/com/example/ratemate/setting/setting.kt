@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -82,17 +83,17 @@ fun Option(navController: NavHostController) {
             ,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Setting",
-                        modifier = Modifier.padding(start = 140.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 25.sp
-                    )
-                }
-            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .height(50.dp)
+                ,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Setting", fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
             var imgchange by remember { mutableStateOf(user!!.profileImage) }
