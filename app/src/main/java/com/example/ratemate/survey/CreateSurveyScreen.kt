@@ -221,8 +221,8 @@ fun CreateSurveyScreen(navController: NavHostController) {
                             content = "", // 필요시 설정
                             likes = Like(),
                             numOfComments = 0,
-//                        createdDate = "", // 필요시 설정
-//                        modifiedDate = "", // 필요시 설정
+                            createdDate = "", // 필요시 설정
+                            modifiedDate = "", // 필요시 설정
                             status = "active",
                             qnA = questionsList.mapIndexed { index, questionItem ->
                                 QnA(
