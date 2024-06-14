@@ -311,9 +311,7 @@ fun RegisterScreen(navController: NavHostController){
 
 
 
-
     }
-
 
 }
 

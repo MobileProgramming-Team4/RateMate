@@ -1,5 +1,6 @@
 package com.example.ratemate.survey
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -14,35 +15,54 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.ratemate.data.QnA
+import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.viewModel.SurveyV2ViewModel
+import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
 
 // 결과 화면
 @Composable
-fun SurveyResultScreen() {
-    val viewModel: SurveyV2ViewModel = viewModel()
-    val survey by viewModel.survey.collectAsState()
+fun ResultScreen(navController: NavController, surveyId: String?) {
+    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
+        SurveyV2Repository()
+    ))
+    if (surveyId != null) {
+        surveyV2ViewModel.getSurvey(surveyId)
+    }
+    else {
+        Log.d("Result 화면", "surveyId is null")
 
-    Scaffold { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Text(
-                text = "설문조사 결과",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = "제목: ${survey?.title ?: ""}",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            survey?.qnA?.forEach { questionItem ->
-                SurveyResult(questionItem)
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+        navController.navigate("home")
+    }
+    val survey by surveyV2ViewModel.survey.collectAsState(initial = null)
+
+
+
+
+
+    survey?.let {
+        Scaffold { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = "설문조사 결과",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Text(
+                    text = "제목: ${survey?.title ?: ""}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                survey?.qnA?.forEach { questionItem ->
+                    SurveyResult(questionItem)
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                }
             }
         }
     }

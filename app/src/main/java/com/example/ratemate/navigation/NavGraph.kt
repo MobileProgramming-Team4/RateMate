@@ -7,11 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ratemate.home.HomeScreen
+import com.example.ratemate.home.SurveyResultScreen
 import com.example.ratemate.login.LoginScreen
 import com.example.ratemate.login.RegisterScreen
 import com.example.ratemate.login.StartScreen
 import com.example.ratemate.survey.CreateSurveyScreen
-import com.example.ratemate.survey.SurveyResultScreen
+import com.example.ratemate.survey.ResultScreen
 
 sealed class Route(val route: String){
     object Start: Route("Start")
@@ -20,7 +21,8 @@ sealed class Route(val route: String){
     object Home: Route("Home")
     object SurveyList: Route("SurveyList")
     object CreateSurvey : Route("CreateSurvey")
-    object SurveyResult : Route("SurveyResult")
+    object Result : Route("Result")
+
 }
 
 @Composable
@@ -52,8 +54,17 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
         composable(Route.CreateSurvey.route) {
             CreateSurveyScreen(navController)
         }
-        composable(Route.SurveyResult.route) {
-            SurveyResultScreen()
+
+        composable(
+            route = "Result?surveyId={surveyId}",
+            arguments = listOf(
+                navArgument("surveyId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val surveyId = backStackEntry.arguments?.getString("surveyId")
+            ResultScreen(navController = navController, surveyId = surveyId)
         }
+
+
     }
 }
