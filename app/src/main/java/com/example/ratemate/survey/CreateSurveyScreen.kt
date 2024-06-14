@@ -326,9 +326,14 @@ fun QuestionEditor(
                 )
                 IconButton(
                     onClick = {
-                        answerTexts.removeAt(index)
-                        question.answers.removeAt(index)
-                        onRemoveAnswer(index)
+                        try {
+                            answerTexts.removeAt(index)
+                            question.answers.removeAt(index)
+                            onRemoveAnswer(index)
+                        } catch (e: IndexOutOfBoundsException) {
+                            Log.d("설문 생성", "Index out of bounds")
+                        }
+
                     },
                     enabled = answerTexts.size > 1 // 답변 옵션이 1개만 있을 때는 삭제 버튼 비활성화
                 ) {
