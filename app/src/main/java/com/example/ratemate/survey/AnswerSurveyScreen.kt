@@ -1,5 +1,6 @@
 package com.example.ratemate.survey
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,16 +40,26 @@ import androidx.navigation.NavController
 import com.example.ratemate.R
 import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.QnA
+import com.example.ratemate.data.Response
+import com.example.ratemate.data.SurveyResult
+import com.example.ratemate.repository.SurveyResultRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.ui.theme.NotoSansKr
+import com.example.ratemate.viewModel.SurveyResultViewModel
+import com.example.ratemate.viewModel.SurveyResultViewModelFactory
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 // 답변 화면
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
     val surveyV2ViewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(SurveyV2Repository()))
+    val surveyResultViewModel: SurveyResultViewModel = viewModel(factory = SurveyResultViewModelFactory(
+        SurveyResultRepository()
+    )
+    )
 
     if (surveyId != null) {
         surveyV2ViewModel.getSurvey(surveyId)
@@ -59,6 +70,10 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
 
     val answers = remember { mutableStateMapOf<String, MutableList<String>>() }
     var currentPage by remember { mutableStateOf(0) }
+
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
+    val userId = user?.uid ?: ""
 
     val isLastPage = currentPage == (survey?.qnA?.size ?: 0) - 1
     val isFirstPage = currentPage == 0
@@ -138,7 +153,40 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
 
                     if (allAnswered) {
                         Button(
-                            onClick = { surveyId?.let { navController.navigate("Result/$it") } },
+                            onClick = {
+                                val userResponses = surveyData.qnA.map { q ->
+                                    answers[q.question]?.map { answer ->
+                                        q.answerList.indexOf(answer)
+                                    } ?: emptyList()
+                                }
+
+                                val response = Response(userId, userResponses)
+                                val updatedQnA = surveyData.qnA.map { q ->
+                                    val answerCounts = q.answerCountList.toMutableList()
+                                    answers[q.question]?.forEach { answer ->
+                                        val index = q.answerList.indexOf(answer)
+                                        if (index >= 0) {
+                                            answerCounts[index]++
+                                        }
+                                    }
+                                    q.copy(answerCountList = answerCounts)
+                                }
+
+                                val surveyResult = SurveyResult(
+                                    surveyId = surveyData.surveyId,
+                                    responses = mapOf(userId to response)
+                                )
+
+                                surveyV2ViewModel.updateSurvey(
+                                    surveyData.surveyId,
+                                    mapOf("qnA" to updatedQnA)
+                                )
+
+                                surveyResultViewModel.addSurveyResult(surveyResult)
+
+                                Log.d("surveyResult", surveyResult.toString())
+                                navController.navigate("SurveyResult/${surveyData.surveyId}")
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(40.dp),

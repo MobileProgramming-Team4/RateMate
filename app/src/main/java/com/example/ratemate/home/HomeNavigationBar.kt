@@ -30,6 +30,7 @@ sealed class HomeNavRoutes (val route: String) {
     object Shop : HomeNavRoutes("Shop")
     object Option : HomeNavRoutes("Option")
     object AnswerSurvey: HomeNavRoutes("AnswerSurvey")
+    object SurveyResult : HomeNavRoutes("SurveyResult")
 }
 
 @Composable
@@ -64,6 +65,20 @@ fun HomeNavigationHost(navController: NavHostController, startnavController: Nav
             AnswerSurveyScreen(
                 navController = navController,
                 surveyId = it.arguments?.getString("SurveyID")
+            )
+        }
+
+        composable(
+            HomeNavRoutes.SurveyResult.route + "/{SurveyID}",
+            arguments = listOf(
+                navArgument(name = "SurveyID") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            SurveyResultScreen(
+                navController = navController,
+                SurveyID = it.arguments?.getString("SurveyID")
             )
         }
 
