@@ -204,53 +204,51 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
             }
         }
 
+
+        var isclickedSort by remember { mutableStateOf(false) }
         //인기순 버튼 클릭시 실행될 함수
         val clickSortByLikes = {
             sortComment = "인기순"
-            commentList = commentList.sortedByDescending { it.like.count }.toMutableList()
+            isclickedSort = true
+
         }
 
         //최신순 버튼 클릭시 실행될 함수
         val clickSortByDate = {
             sortComment = "최신순"
-            commentList = commentList.sortedByDescending { Date(it.createdDate) }.toMutableList()
+            isclickedSort = true
         }
 
+        if (isclickedSort) {
+            surveyV2ViewModel.getSurvey(Result.surveyId)
+            val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
+            if (isSurveyLoaded) {
+                isclickedSort = false
+                if (sortComment == "인기순") {
+                    try {
+                        val commentsCopy = surveyResult!!.comments.toList()
+                        commentList =
+                            commentsCopy.sortedByDescending { it.like.count }.toMutableList()
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "정렬 에러", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    try {
+                        val commentsCopy = surveyResult!!.comments.toList()
+                        commentList =
+                            commentsCopy.sortedByDescending { Date(it.createdDate) }.toMutableList()
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "정렬 에러", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                numberOfComment = surveyResult!!.comments.size
+                surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
 
-        var changedComment by remember { mutableStateOf(false) }
-
-        //댓글 추가 함수
-        @Composable
-        fun addComment(comment: String) {
-            val newComment = Comment(
-                commentId = UUID.randomUUID().toString(),
-                userId = user.email,
-                text = comment,
-                createdDate = Date().toString(),
-                profileImage = user.profileImage.toString(),
-                like = Like(),
-                dislike = Dislike()
-            )
-
-            //댓글 추가시 유저 포인트 1 증가
-            val auth = FirebaseAuth.getInstance()
-            val userUid = auth.currentUser?.uid
-            val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
-            userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
-
-            surveyResult!!.comments.add(newComment)
-            surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("comments" to surveyResult!!.comments))
-            numberOfComment = surveyResult!!.comments.size
-            surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
-            commentList = surveyResult!!.comments.toMutableList()
-
-            if (sortComment == "인기순") {
-                clickSortByLikes()
-            } else {
-                clickSortByDate()
             }
-
         }
+
+
+        var addComment by remember { mutableStateOf(false) }
 
 
 
@@ -264,24 +262,52 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
             else {
                 newComment = comment
+                addComment = true
                 Toast.makeText(context, "댓글이 등록되었습니다", Toast.LENGTH_SHORT).show()
             }
         }
 
-        //댓글 수 동기화
-        LaunchedEffect(key1 = commentList, key2 = newComment) {
-            changedComment = true
-
-        }
-
-        if (changedComment) {
+        //댓글 추가
+        if (addComment) {
             if (newComment != "") {
                 surveyV2ViewModel.getSurvey(Result.surveyId)
                 val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
                 if (isSurveyLoaded) {
-                    changedComment = false
+                    addComment = false
                     if (newComment != "") {
-                        addComment(newComment)
+
+                        Log.d("댓글", "댓글 추가 : $newComment")
+
+                        val add = Comment(
+                            commentId = UUID.randomUUID().toString(),
+                            userId = user.email,
+                            text = newComment,
+                            createdDate = Date().toString(),
+                            profileImage = user.profileImage.toString(),
+                            like = Like(),
+                            dislike = Dislike()
+                        )
+
+                        //댓글 추가시 유저 포인트 1 증가
+                        val auth = FirebaseAuth.getInstance()
+                        val userUid = auth.currentUser?.uid
+                        val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+                        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
+
+                        //댓글 추가
+                        val newCommentList = surveyResult!!.comments.toMutableList()
+                        newCommentList.add(add)
+                        surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("comments" to newCommentList))
+                        numberOfComment = surveyResult!!.comments.size
+                        surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
+                        commentList = surveyResult!!.comments.toMutableList()
+
+                        if (sortComment == "인기순") {
+                            clickSortByLikes()
+                        } else {
+                            clickSortByDate()
+                        }
+
                         newComment = ""
                     }
                 }
@@ -573,7 +599,7 @@ fun AddExampleSurveyV2(){
 @Composable
 fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
               ,modifier: Modifier, editSurvey : () -> Unit,
-                removeSurvey : () -> Unit
+              removeSurvey : () -> Unit
 ) {
 
     var expanded by remember { mutableStateOf(false) }
@@ -620,7 +646,7 @@ fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
                     .onGloballyPositioned { layoutCoordinates ->
                         iconSize = layoutCoordinates.size.toSize()
                     }
-                )
+            )
 
             offsetSize = Size(rowSize.width - iconSize.width, 0F)
 
@@ -894,7 +920,7 @@ fun ShowCounts(
                 Text(
                     text = selectedText,
                     modifier = Modifier.safeContentPadding()
-                    )
+                )
             }
             offsetSize = Size(rowSize.width - buttonSize.width, 0F)
 
@@ -925,9 +951,10 @@ fun ShowCounts(
 
 
 @Composable
-fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2 ,modifier: Modifier){
-    var saveLikeDislike by remember { mutableStateOf("None") }
+fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier){
     var sendInfo by remember { mutableStateOf(true) }
+    val changedCommentList = mutableListOf<changedComment>()
+
     LazyColumn(
         modifier = modifier
     ) {
@@ -935,16 +962,12 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2 ,m
 
             var like by rememberSaveable { mutableIntStateOf(comment.like.count) }
             var dislike by rememberSaveable { mutableIntStateOf(comment.dislike.count) }
-            var isLiked by rememberSaveable {
-                mutableStateOf(
-                    comment.like.usersWhoLiked.find { it == user.userId } != null
-                )
-            }
-            var isDisliked by rememberSaveable {
-                mutableStateOf(
-                    comment.dislike.usersWhoDisliked.find { it == user.userId } != null
-                )
-            }
+
+            var isLiked by rememberSaveable { mutableStateOf(
+                comment.like.usersWhoLiked.find { it == user.userId } != null) }
+
+            var isDisliked by rememberSaveable { mutableStateOf(
+                comment.dislike.usersWhoDisliked.find { it == user.userId } != null) }
 
             LaunchedEffect(comments) {
                 like = comment.like.count
@@ -956,36 +979,81 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2 ,m
             LaunchedEffect(key1 = isLiked, key2 = isDisliked) {
                 comment.like.count = like
                 comment.dislike.count = dislike
-                if (isLiked) {
-                    comment.like.usersWhoLiked.find { it == user.userId } ?: run {
-                        comment.like.usersWhoLiked.add(user.userId)
-                    }
-                    saveLikeDislike = "Like"
-                } else {
-                    comment.like.usersWhoLiked.remove(user.userId)
-                    saveLikeDislike = "None"
-                }
+                val changedComment = changedComment(comment.commentId, isLiked, isDisliked)
+                changedCommentList.add(changedComment)
 
-                if (isDisliked) {
-                    comment.dislike.usersWhoDisliked.find { it == user.userId } ?: run {
-                        comment.dislike.usersWhoDisliked.add(user.userId)
-                    }
-                    saveLikeDislike = "Dislike"
-                } else {
-                    comment.dislike.usersWhoDisliked.remove(user.userId)
-                    saveLikeDislike = "None"
-                }
+                Log.d("댓글", "changedComment : $changedComment")
 
                 sendInfo = true
 
             }
 
-            if (sendInfo) {
+            LaunchedEffect(key1 = changedCommentList) {
+                sendInfo = true
+            }
+
+            LaunchedEffect(key1 = Unit) {
                 sendInfo = false
+            }
+
+            LaunchedEffect(key1 = comments) {
+                sendInfo = false
+            }
+
+            if (sendInfo) {
                 val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
                     SurveyV2Repository()
                 ))
-                surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to surveyResult.comments))
+                surveyV2ViewModel.getSurvey(surveyResult.surveyId)
+                val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
+                val loadedSurvey by surveyV2ViewModel.survey.collectAsState(initial = surveyResult)
+                try {
+                    if (isSurveyLoaded) {
+                        sendInfo = false
+                        val loadedComments = loadedSurvey!!.comments.toMutableList()
+                        loadedComments.forEach { loadedComment ->
+                            changedCommentList.forEach { changedComment ->
+                                if (loadedComment.commentId == changedComment.commentId) {
+                                    changedCommentList.remove(changedComment)
+                                    loadedComment.like.usersWhoLiked = loadedComment.like.usersWhoLiked.toMutableList().apply {
+                                        if(loadedComment.like.usersWhoLiked.find { it == user.userId } != null){
+                                            if (!changedComment.isLiked) {
+                                                remove(user.userId)
+                                            }
+                                        } else {
+                                            if (changedComment.isLiked) {
+                                                add(user.userId)
+                                            }
+                                        }
+
+                                    }
+                                    loadedComment.dislike.usersWhoDisliked = loadedComment.dislike.usersWhoDisliked.toMutableList().apply {
+                                        if(loadedComment.dislike.usersWhoDisliked.find { it == user.userId } != null){
+                                            if (!changedComment.isDisliked) {
+                                                remove(user.userId)
+                                            }
+                                        } else {
+                                            if (changedComment.isDisliked) {
+                                                add(user.userId)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            loadedComment.like.count = loadedComment.like.usersWhoLiked.size
+                            loadedComment.dislike.count = loadedComment.dislike.usersWhoDisliked.size
+
+                        }
+
+                        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to loadedComments))
+
+
+                    }
+                }
+                catch (e: Exception) {
+                    Log.d("댓글", "댓글 업데이트 에러")
+                }
 
             }
 
@@ -1033,9 +1101,17 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2 ,m
             )
 
         }
+
     }
 
+
 }
+
+data class changedComment(
+    val commentId: String,
+    val isLiked: Boolean,
+    val isDisliked: Boolean,
+)
 
 @Composable
 fun ShowComment(
