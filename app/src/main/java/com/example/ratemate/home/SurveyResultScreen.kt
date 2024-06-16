@@ -434,7 +434,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
         Scaffold(
             topBar = {
-                CommonTopAppBar(title = "결과", onNavigateBack = { navController.navigate("home") })
+                CommonTopAppBar(title = "결과", onNavigateBack = { navController.popBackStack() })
             }
         ) { paddingValues ->
             //전체화면 Column

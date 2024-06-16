@@ -190,7 +190,11 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
                                 }
 
                                 Log.d("surveyResult", surveyData.toString())
-                                navController.navigate("SurveyResult/${surveyData.surveyId}")
+                                navController.navigate("SurveyResult/${surveyData.surveyId}"){
+                                    popUpTo("Home"){
+                                        inclusive = false
+                                    }
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
