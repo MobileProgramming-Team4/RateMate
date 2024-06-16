@@ -114,6 +114,7 @@ fun StoreScreen(navController: NavController) {
 
         var addTrans by rememberSaveable { mutableStateOf(false) }
         var addItem by rememberSaveable { mutableStateOf("") }
+        var addItemName by rememberSaveable { mutableStateOf("") }
         //구매 버튼 클릭 시
         val clickBuy: (String) -> Unit = { itemId ->
             val item = showGoodsList.find { it.itemId == itemId }
@@ -132,6 +133,7 @@ fun StoreScreen(navController: NavController) {
                 user!!.PurchaseList = userPurchaseList
                 addTrans = true
                 addItem = item.itemId
+                addItemName = item.itemName
 
 
 
@@ -143,7 +145,7 @@ fun StoreScreen(navController: NavController) {
             val transaction = PointTransaction(
                 userId = uid,
                 amount = -showGoodsList.find { it.itemId == addItem }!!.cost,
-                transactionType = "구매",
+                transactionType = "${addItemName} 상품 구매",
                 transactionDate = Date().toString(),
                 itemId = addItem
             )
@@ -156,6 +158,7 @@ fun StoreScreen(navController: NavController) {
             userViewModel.updateUser(uid, mapOf("PurchaseList" to userPurchaseList))
             userViewModel.updateUser(uid, mapOf("points" to points))
             addItem = ""
+            addItemName = ""
         }
 
 //        LaunchedEffect(key1 = userPurchaseList) {
