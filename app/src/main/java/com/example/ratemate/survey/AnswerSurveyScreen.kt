@@ -44,11 +44,14 @@ import com.example.ratemate.data.Response
 import com.example.ratemate.data.SurveyResult
 import com.example.ratemate.repository.SurveyResultRepository
 import com.example.ratemate.repository.SurveyV2Repository
+import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.viewModel.SurveyResultViewModel
 import com.example.ratemate.viewModel.SurveyResultViewModelFactory
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
+import com.example.ratemate.viewModel.UserViewModel
+import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 
 // 답변 화면
@@ -60,6 +63,7 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
         SurveyResultRepository()
     )
     )
+    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
 
     if (surveyId != null) {
         surveyV2ViewModel.getSurvey(surveyId)
@@ -183,7 +187,9 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
                                 )
 
                                 surveyResultViewModel.addSurveyResult(surveyResult)
-
+                                surveyId?.let {
+                                    userViewModel.addSurveyToParticipated(userId, it)
+                                }
                                 Log.d("surveyResult", surveyResult.toString())
                                 navController.navigate("SurveyResult/${surveyData.surveyId}")
                             },
