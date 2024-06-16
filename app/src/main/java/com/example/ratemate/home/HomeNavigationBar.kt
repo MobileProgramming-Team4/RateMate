@@ -11,12 +11,15 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
+import com.example.ratemate.survey.AnswerSurveyScreen
 import com.example.ratemate.survey.CreateSurveyScreen
 
 
@@ -26,6 +29,8 @@ sealed class HomeNavRoutes (val route: String) {
     object MyPage : HomeNavRoutes("MyPage")
     object Shop : HomeNavRoutes("Shop")
     object Option : HomeNavRoutes("Option")
+    object AnswerSurvey: HomeNavRoutes("AnswerSurvey")
+    object SurveyResult : HomeNavRoutes("SurveyResult")
 }
 
 @Composable
@@ -48,6 +53,33 @@ fun HomeNavigationHost(navController: NavHostController, startnavController: Nav
         }
         composable(HomeNavRoutes.Option.route){
             Option(startnavController)
+        }
+
+        composable(
+            HomeNavRoutes.AnswerSurvey.route + "/{SurveyID}",
+            arguments = listOf(
+                navArgument(name = "SurveyID") {
+                    type = NavType.StringType
+                }
+            )) {
+            AnswerSurveyScreen(
+                navController = navController,
+                surveyId = it.arguments?.getString("SurveyID")
+            )
+        }
+
+        composable(
+            HomeNavRoutes.SurveyResult.route + "/{SurveyID}",
+            arguments = listOf(
+                navArgument(name = "SurveyID") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            SurveyResultScreen(
+                navController = navController,
+                SurveyID = it.arguments?.getString("SurveyID")
+            )
         }
 
     }

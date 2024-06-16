@@ -1,4 +1,4 @@
-package com.example.ratemate.viewmodel
+package com.example.ratemate.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

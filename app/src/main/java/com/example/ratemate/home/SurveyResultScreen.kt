@@ -45,6 +45,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -80,6 +81,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.R
+import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.Comment
 import com.example.ratemate.data.Dislike
 import com.example.ratemate.data.Like
@@ -87,11 +89,8 @@ import com.example.ratemate.data.QnA
 import com.example.ratemate.data.Response
 import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.data.User
-import com.example.ratemate.repository.CommentRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
-import com.example.ratemate.viewModel.CommentViewModel
-import com.example.ratemate.viewModel.CommentViewModelFactory
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
 import com.example.ratemate.viewModel.UserViewModel
@@ -389,48 +388,63 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
             clickSortByLikes()
         }
 
+        Scaffold(
+            topBar = {
+                CommonTopAppBar(title = "결과", onNavigateBack = { navController.navigate("home") })
+            }
+        ) { paddingValues ->
+            //전체화면 Column
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .clickable(
+                        onClick = { focusManager.clearFocus() },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ),
 
-        //전체화면 Column
-        Column (
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    onClick = { focusManager.clearFocus() },
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
-
-            ){
-
-
-            //제목, 작성자
-            val modifier1 = Modifier.height(40.dp)
-            ShowTitle(title = surveyResult!!.title, writer = surveyResult!!.creatorId,
-                isMySurvey = isMySurvey, modifier = modifier1, editSurvey = editSurvey
-                , removeSurvey = removeSurvey)
-
-            //내용
-            val modifier2 = Modifier.weight(7f)
-            ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
-
-            //좋아요, 댓글 수, 댓글 정렬 방법 버튼
-            val modifier3 = Modifier.height(40.dp)
-            ShowCounts(isLiked = isLiked, like = likes,
-                numberOfComment = numberOfComment, modifier = modifier3,
-                clickLikes = clickLikes, clickSortByLikes = clickSortByLikes,
-                clickSortByDate = clickSortByDate)
-
-            //댓글 리스트
-            Divider()
-            val modifier5 = Modifier.weight(5f)
-            ShowComments(user, comments = commentList, surveyResult = surveyResult!!,
-                modifier = modifier5)
-
-            //댓글 입력창
-            val modifier6 = Modifier.height(70.dp)
-            ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
+                ) {
 
 
+                //제목, 작성자
+                val modifier1 = Modifier.height(40.dp)
+                ShowTitle(
+                    title = surveyResult!!.title,
+                    writer = surveyResult!!.creatorId,
+                    isMySurvey = isMySurvey,
+                    modifier = modifier1,
+                    editSurvey = editSurvey,
+                    removeSurvey = removeSurvey
+                )
+
+                //내용
+                val modifier2 = Modifier.weight(7f)
+                ShowMainContent(content = content, userChoice = userChoice, modifier = modifier2)
+
+                //좋아요, 댓글 수, 댓글 정렬 방법 버튼
+                val modifier3 = Modifier.height(40.dp)
+                ShowCounts(
+                    isLiked = isLiked, like = likes,
+                    numberOfComment = numberOfComment, modifier = modifier3,
+                    clickLikes = clickLikes, clickSortByLikes = clickSortByLikes,
+                    clickSortByDate = clickSortByDate
+                )
+
+                //댓글 리스트
+                Divider()
+                val modifier5 = Modifier.weight(5f)
+                ShowComments(
+                    user, comments = commentList, surveyResult = surveyResult!!,
+                    modifier = modifier5
+                )
+
+                //댓글 입력창
+                val modifier6 = Modifier.height(70.dp)
+                ShowCommentInput(modifier = modifier6, onClickSend = onClickSend)
+
+
+            }
         }
     }
 
