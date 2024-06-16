@@ -35,7 +35,7 @@ class PointTransactionViewModel(private val repository: PointTransactionReposito
         loadAllPointTransactions()
     }
 
-    private fun loadAllPointTransactions() {
+    fun loadAllPointTransactions() {
         viewModelScope.launch {
             repository.getAllPointTransactions().collect { transactions ->
                 _pointTransactions.value = transactions

@@ -54,10 +54,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ratemate.R
+import com.example.ratemate.data.PointTransaction
 import com.example.ratemate.data.User
+import com.example.ratemate.repository.PointTransactionRepository
 import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.ui.theme.Purple40
+import com.example.ratemate.viewModel.PointTransactionViewModel
+import com.example.ratemate.viewModel.PointTransactionViewModelFactory
 import com.example.ratemate.viewModel.UserViewModel
 import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -346,6 +350,20 @@ fun AddUserData(email: String, password: String) {
         surveysCreated = mutableListOf(),
         surveysParticipated = mutableListOf(),
         PurchaseList = mutableListOf()
+    )
+
+    var pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
+        PointTransactionRepository()
+    ))
+
+    pointTransactionViewModel.addPointTransaction(
+        PointTransaction(
+            transactionId = "",
+            userId = madeUser?.uid.toString(),
+            amount = 500,
+            transactionType = "등록 기념 포인트 지급",
+            transactionDate = Date().toString()
+        )
     )
 
     userViewModel.addUser(insertUser)
