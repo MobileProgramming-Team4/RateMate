@@ -41,7 +41,6 @@ import com.example.ratemate.R
 import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.QnA
 import com.example.ratemate.data.Response
-import com.example.ratemate.data.SurveyResult
 import com.example.ratemate.repository.SurveyResultRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
@@ -61,8 +60,7 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
     val surveyV2ViewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(SurveyV2Repository()))
     val surveyResultViewModel: SurveyResultViewModel = viewModel(factory = SurveyResultViewModelFactory(
         SurveyResultRepository()
-    )
-    )
+    ))
     val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
 
     if (surveyId != null) {
@@ -176,21 +174,22 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
                                     q.copy(answerCountList = answerCounts)
                                 }
 
-                                val surveyResult = SurveyResult(
-                                    surveyId = surveyData.surveyId,
-                                    responses = mapOf(userId to response)
-                                )
+                                val updatedResponses = surveyData.response.toMutableList()
+                                updatedResponses.add(response)
 
                                 surveyV2ViewModel.updateSurvey(
                                     surveyData.surveyId,
-                                    mapOf("qnA" to updatedQnA)
+                                    mapOf(
+                                        "qnA" to updatedQnA,
+                                        "response" to updatedResponses
+                                    )
                                 )
 
-                                surveyResultViewModel.addSurveyResult(surveyResult)
                                 surveyId?.let {
                                     userViewModel.addSurveyToParticipated(userId, it)
                                 }
-                                Log.d("surveyResult", surveyResult.toString())
+
+                                Log.d("surveyResult", surveyData.toString())
                                 navController.navigate("SurveyResult/${surveyData.surveyId}")
                             },
                             modifier = Modifier
