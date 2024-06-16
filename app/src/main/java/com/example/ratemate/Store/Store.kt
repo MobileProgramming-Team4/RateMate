@@ -24,15 +24,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.R
+import com.example.ratemate.data.PointTransaction
 import com.example.ratemate.data.StoreItem
 import com.example.ratemate.data.User
+import com.example.ratemate.repository.PointTransactionRepository
 import com.example.ratemate.repository.StoreItemRepository
 import com.example.ratemate.repository.UserRepository
+import com.example.ratemate.viewModel.PointTransactionViewModel
+import com.example.ratemate.viewModel.PointTransactionViewModelFactory
 import com.example.ratemate.viewModel.StoreItemViewModel
 import com.example.ratemate.viewModel.StoreItemViewModelFactory
 import com.example.ratemate.viewModel.UserViewModel
 import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Date
 import java.util.UUID
 
 @Composable
@@ -106,6 +111,9 @@ fun StoreScreen(navController: NavController) {
         }
         val context = LocalContext.current
 
+
+        var addTrans by rememberSaveable { mutableStateOf(false) }
+        var addItem by rememberSaveable { mutableStateOf("") }
         //구매 버튼 클릭 시
         val clickBuy: (String) -> Unit = { itemId ->
             val item = showGoodsList.find { it.itemId == itemId }
@@ -118,20 +126,45 @@ fun StoreScreen(navController: NavController) {
                 Log.d("상점 화면", "id: ${item.itemId} 구매 실패")
                 Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
             } else {
+                Toast.makeText(context, "${item.itemName}을 구매하였습니다.", Toast.LENGTH_SHORT).show()
                 points -= item.cost
                 userPurchaseList = userPurchaseList + item
                 user!!.PurchaseList = userPurchaseList
+                addTrans = true
+                addItem = item.itemId
+
+
 
             }
         }
 
-        LaunchedEffect(key1 = userPurchaseList) {
+        if (addTrans) {
+            addTrans = false
+            val transaction = PointTransaction(
+                userId = uid,
+                amount = -showGoodsList.find { it.itemId == addItem }!!.cost,
+                transactionType = "구매",
+                transactionDate = Date().toString(),
+                itemId = addItem
+            )
+
+            var pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
+                PointTransactionRepository()
+            ))
+
+            pointTransactionViewModel.addPointTransaction(transaction)
             userViewModel.updateUser(uid, mapOf("PurchaseList" to userPurchaseList))
+            userViewModel.updateUser(uid, mapOf("points" to points))
+            addItem = ""
         }
 
-        LaunchedEffect(key1 = points) {
-            userViewModel.updateUser(uid, mapOf("points" to points))
-        }
+//        LaunchedEffect(key1 = userPurchaseList) {
+//            userViewModel.updateUser(uid, mapOf("PurchaseList" to userPurchaseList))
+//        }
+//
+//        LaunchedEffect(key1 = points) {
+//            userViewModel.updateUser(uid, mapOf("points" to points))
+//        }
 
 
 
