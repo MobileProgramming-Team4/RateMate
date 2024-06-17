@@ -213,7 +213,7 @@ fun Point(navController: NavHostController) {
             LazyColumn {
                 items(pointsT) { point ->
                     if(point.userId == user!!.userId){
-                        point.itemId?.let { it1 -> PointItem(itemName = it1, itemPoints = point.amount) }
+                        point.transactionType?.let { it1 -> PointItem(itemName = it1, itemPoints = point.amount) }
                     }
                 }
             }
