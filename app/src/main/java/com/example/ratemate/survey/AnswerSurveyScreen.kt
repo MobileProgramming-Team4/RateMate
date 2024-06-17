@@ -39,29 +39,31 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.R
 import com.example.ratemate.common.CommonTopAppBar
+import com.example.ratemate.data.PointTransaction
 import com.example.ratemate.data.QnA
 import com.example.ratemate.data.Response
-import com.example.ratemate.repository.SurveyResultRepository
+import com.example.ratemate.repository.PointTransactionRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
-import com.example.ratemate.viewModel.SurveyResultViewModel
-import com.example.ratemate.viewModel.SurveyResultViewModelFactory
+import com.example.ratemate.viewModel.PointTransactionViewModel
+import com.example.ratemate.viewModel.PointTransactionViewModelFactory
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
 import com.example.ratemate.viewModel.UserViewModel
 import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Date
 
 // 답변 화면
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
     val surveyV2ViewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(SurveyV2Repository()))
-    val surveyResultViewModel: SurveyResultViewModel = viewModel(factory = SurveyResultViewModelFactory(
-        SurveyResultRepository()
-    ))
     val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    val pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
+        PointTransactionRepository()
+    ))
 
     if (surveyId != null) {
         surveyV2ViewModel.getSurvey(surveyId)
@@ -83,12 +85,19 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
         answers.size == questions.size && answers.values.all { it.isNotEmpty() }
     } ?: false
 
+
+    //파이어베이스에서 유저 정보 가져오기
+    userViewModel.getUser(userId)
+    val loadUser by userViewModel.user.collectAsState(initial = null)
+
+    val answerPoint = 30
+
     Scaffold(
         topBar = {
             CommonTopAppBar(title = "설문조사", onNavigateBack = { navController.popBackStack() })
         }
     ) { paddingValues ->
-        if (isSurveyLoaded && survey != null) {
+        if ((isSurveyLoaded && survey != null )  && loadUser != null){
             survey?.let { surveyData ->
                 Column(
                     modifier = Modifier
@@ -188,6 +197,20 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
                                 surveyId?.let {
                                     userViewModel.addSurveyToParticipated(userId, it)
                                 }
+
+                                //설문 참여 보상 포인트  지급
+                                userViewModel.updateUser(loadUser!!.userId, mapOf( "points" to loadUser!!.points + answerPoint))
+                                pointTransactionViewModel.addPointTransaction(
+                                    PointTransaction(
+                                        transactionId = "",
+                                        userId = loadUser!!.userId,
+                                        amount = answerPoint,
+                                        transactionType = "설문 참여 보상",
+                                        transactionDate = Date().toString()
+                                    )
+                                )
+
+
 
                                 Log.d("surveyResult", surveyData.toString())
                                 navController.navigate("SurveyResult/${surveyData.surveyId}"){

@@ -1,5 +1,6 @@
 package com.example.ratemate.setting
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -69,12 +71,22 @@ fun Option(navController: NavHostController) {
     if (uid != null){
         userViewModel.getUser(uid)
     }
-    val user by userViewModel.user.collectAsState(initial = null)
+    val Nuser by userViewModel.user.collectAsState(initial = null)
 
     val scollState = rememberScrollState()
 
+    var purchaseProfileList by remember { mutableStateOf(listOf(R.drawable.profile)) }
 
-    user?.let {
+    var user by remember { mutableStateOf(Nuser) }
+
+    LaunchedEffect(Nuser) {
+        user = Nuser
+        Log.d("동기화 확인", user.toString())
+    }
+
+
+
+        user?.let {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,6 +95,49 @@ fun Option(navController: NavHostController) {
             ,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+
+            var currentProfile = user!!.profileImage
+
+            var changed by remember { mutableStateOf(false) }
+
+            LaunchedEffect(key1 = user) {
+                currentProfile = user!!.profileImage
+                Log.d("동기화 확인", currentProfile.toString())
+                changed = true
+            }
+
+
+            LaunchedEffect(key1 = Unit, key2 = changed) {
+                val userPurchaseList = user!!.PurchaseList
+                changed = false
+
+                purchaseProfileList = listOf(R.drawable.profile)
+
+                for (item in userPurchaseList) {
+
+                    if (item.itemName == "item1"){
+                        purchaseProfileList = purchaseProfileList + R.drawable.item1
+                    }
+                    if (item.itemName == "item2"){
+                        purchaseProfileList = purchaseProfileList + R.drawable.item2
+                    }
+                    if (item.itemName == "item3") {
+                        purchaseProfileList = purchaseProfileList + R.drawable.item3
+                    }
+                    if (item.itemName == "item4") {
+                        purchaseProfileList = purchaseProfileList + R.drawable.item4
+                    }
+                    if (item.itemName == "item5") {
+                        purchaseProfileList = purchaseProfileList + R.drawable.item5
+                    }
+
+                }
+
+                purchaseProfileList = purchaseProfileList - currentProfile
+
+                Log.d("동기화 확인", "purchaseProfileList : " + purchaseProfileList.toString())
+
+            }
 
             Row(
                 modifier = Modifier
@@ -108,41 +163,37 @@ fun Option(navController: NavHostController) {
                     .clip(CircleShape)
                     .background(Color.Gray)
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(15.dp))
-            Row(modifier = Modifier
-                .width(300.dp)) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile), // 프로필 이미지 리소스
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                        .clickable { imgchange = R.drawable.profile }
-                )
-                Spacer(modifier = Modifier.weight(0.5f))
-                Image(
-                    painter = painterResource(id = R.drawable.profile2), // 프로필 이미지 리소스
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                        .clickable { imgchange = R.drawable.profile2 }
-                )
-                Spacer(modifier = Modifier.weight(0.5f))
-                Image(
-                    painter = painterResource(id = R.drawable.profile3), // 프로필 이미지 리소스
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                        .clickable { imgchange = R.drawable.profile3 }
-                )
+
+            if (purchaseProfileList.isNotEmpty()) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.LightGray)
+                    .padding(top = 15.dp, bottom = 15.dp, start = 8.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    for (img in purchaseProfileList) {
+                        Image(
+                            painter = painterResource(id = img),
+                            contentDescription = "Profile Image",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray)
+                                .clickable {
+                                    imgchange = img
+                                    currentProfile = img
+                                }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                }
             }
-            Spacer(modifier = Modifier.height(15.dp))
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Button(
                 onClick = {
                     userViewModel.updateUser(uid, mapOf(profileimg to imgchange))
