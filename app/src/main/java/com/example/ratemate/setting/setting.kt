@@ -153,7 +153,7 @@ fun Option(navController: NavHostController) {
             Spacer(modifier = Modifier.height(24.dp))
             var imgchange by remember { mutableStateOf(user!!.profileImage) }
             // 프로필 사진 변경 섹션
-            SectionTitle("프로필 사진 변경")
+            SectionTitle(if (purchaseProfileList.isEmpty()) "프로필 사진" else "프로필 사진 변경")
             Spacer(modifier = Modifier.height(15.dp))
             Image(
                 painter = painterResource(id = imgchange), // 프로필 이미지 리소스
@@ -190,20 +190,20 @@ fun Option(navController: NavHostController) {
                     }
 
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = {
-                    userViewModel.updateUser(uid, mapOf(profileimg to imgchange))
-                    profSuccessDialog = true
-                },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color.LightGray
-                )
-            ) {
-                Text("이미지 등록")
+                Button(
+                    onClick = {
+                        userViewModel.updateUser(uid, mapOf(profileimg to imgchange))
+                        profSuccessDialog = true
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray
+                    )
+                ) {
+                    Text("이미지 등록")
+                }
             }
 
             Spacer(modifier = Modifier.height(40.dp))
