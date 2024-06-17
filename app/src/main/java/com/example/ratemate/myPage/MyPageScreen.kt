@@ -65,7 +65,7 @@ fun MyPageScreen(startNav: NavController) {
 
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
-            MyPageNavigationHost(navController = navController)
+            MyPageNavigationHost(navController = navController, startNav)
         }
     }
 }

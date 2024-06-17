@@ -59,11 +59,14 @@ import androidx.navigation.NavHostController
 import com.example.ratemate.R
 import com.example.ratemate.data.Survey
 import com.example.ratemate.data.SurveyV2
+import com.example.ratemate.repository.PointTransactionRepository
 import com.example.ratemate.repository.StoreItemRepository
 import com.example.ratemate.repository.SurveyRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
+import com.example.ratemate.viewModel.PointTransactionViewModel
+import com.example.ratemate.viewModel.PointTransactionViewModelFactory
 import com.example.ratemate.viewModel.SortType
 import com.example.ratemate.viewModel.StoreItemViewModel
 import com.example.ratemate.viewModel.StoreItemViewModelFactory
@@ -76,7 +79,7 @@ import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun Answer(navController: NavHostController) {
+fun Answer(navController: NavHostController, startnav:NavController) {
     val repository = SurveyV2Repository()
     val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState(initial = emptyList())
@@ -151,7 +154,7 @@ fun Answer(navController: NavHostController) {
                     LazyColumn {
                         items(surveys) { survey ->
                             if(user!!.surveysParticipated.contains(survey.surveyId)){
-                                SurveyItem(survey, navController)
+                                SurveyItem(survey, startnav)
                             }
                         }
                     }
@@ -169,6 +172,13 @@ fun Point(navController: NavHostController) {
     val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(uid!!)
     val user by userViewModel.user.collectAsState(initial = null)
+
+    val repository = PointTransactionRepository()
+    val viewModel: PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(repository))
+    val pointsT by viewModel.pointTransactions.collectAsState(initial = emptyList())
+    LaunchedEffect(Unit) {
+        viewModel.loadAllPointTransactions()
+    }
 
     user?.let{
         Column(
@@ -201,8 +211,10 @@ fun Point(navController: NavHostController) {
 
             }
             LazyColumn {
-                items(user!!.PurchaseList) { goods ->
-                    PointItem(itemName = goods.itemName, itemPoints = goods.cost)
+                items(pointsT) { point ->
+                    if(point.userId == user!!.userId){
+                        point.itemId?.let { it1 -> PointItem(itemName = it1, itemPoints = point.amount) }
+                    }
                 }
             }
         }
@@ -214,7 +226,7 @@ fun Point(navController: NavHostController) {
 }
 
 @Composable
-fun Quest(navController: NavHostController) {
+fun Quest(navController: NavHostController, startnav:NavController) {
     val repository = SurveyV2Repository()
     val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState(initial = emptyList())
@@ -290,7 +302,7 @@ fun Quest(navController: NavHostController) {
                     LazyColumn {
                         items(surveys) { survey ->
                             if(user!!.surveysCreated.contains(survey.surveyId)){
-                                SurveyItem(survey, navController)
+                                SurveyItem(survey, startnav)
                             }
                         }
                     }
@@ -306,7 +318,7 @@ fun SurveyItem(survey: SurveyV2, navController: NavController) {
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)
-        .clickable { navController.navigate("SurveyResult/${survey.surveyId}") }) {
+        .clickable { navController.navigate("Result/${survey.surveyId}") }) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
             Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)

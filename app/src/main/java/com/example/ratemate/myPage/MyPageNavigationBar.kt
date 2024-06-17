@@ -24,30 +24,19 @@ sealed class MyPageNavRoutes (val route: String) {
 }
 
 @Composable
-fun MyPageNavigationHost(navController: NavHostController) {
+fun MyPageNavigationHost(navController: NavHostController, startnav: NavController) {
     NavHost(
         navController = navController,
         startDestination = MyPageNavRoutes.Quest.route
     ){
         composable(MyPageNavRoutes.Quest.route){
-            Quest(navController)
+            Quest(navController, startnav)
         }
         composable(MyPageNavRoutes.Answer.route){
-            Answer(navController)
+            Answer(navController, startnav)
         }
         composable(MyPageNavRoutes.Point.route){
             Point(navController)
-        }
-        composable(MyPageNavRoutes.SurveyResult.route + "/{SurveyID}",
-            arguments = listOf(
-                navArgument(name = "SurveyID") {
-                    type = NavType.StringType
-                }
-            )) {
-            SurveyResultScreen(
-                navController = navController,
-                SurveyID = it.arguments?.getString("SurveyID")
-            )
         }
     }
 }
