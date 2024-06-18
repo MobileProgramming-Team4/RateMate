@@ -9,12 +9,9 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navArgument
-import com.example.ratemate.home.SurveyResultScreen
 
 sealed class MyPageNavRoutes (val route: String) {
     object Quest : MyPageNavRoutes("Quest")

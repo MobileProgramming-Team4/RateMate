@@ -21,8 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.data.User
 import com.example.ratemate.repository.SurveyV2Repository
@@ -89,117 +88,102 @@ fun SurveyListScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "Home",
-                            fontSize = 25.sp,
-                            fontFamily = NotoSansKr,
-                            fontWeight = FontWeight.Bold
+            CommonTopAppBar(
+                title = "Home",
+                onNavigateBack = { },
+                false
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    sortText,
+                    fontSize = 15.sp,
+                    fontFamily = NotoSansKr,
+                    fontWeight = FontWeight.Bold
+                )
+                Box {
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "정렬",
+                            tint = Color.Black
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        sortText,
-                        fontSize = 15.sp,
-                        fontFamily = NotoSansKr,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Box {
-                        IconButton(onClick = { expanded = !expanded }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "정렬",
-                                tint = Color.Black
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "최신순",
-                                        fontFamily = NotoSansKr,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                onClick = {
-                                    surveyViewModel.sortSurveys(SortType.LATEST)
-                                    sortText = "최신순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "좋아요 많은 순",
-                                        fontFamily = NotoSansKr,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                onClick = {
-                                    surveyViewModel.sortSurveys(SortType.MOST_LIKED)
-                                    sortText = "좋아요 많은 순"
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "답변 많은 순",
-                                        fontFamily = NotoSansKr,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                onClick = {
-                                    surveyViewModel.sortSurveys(SortType.MOST_RESPONDED)
-                                    sortText = "답변 많은 순"
-                                    expanded = false
-                                }
-                            )
-                        }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "최신순",
+                                    fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            onClick = {
+                                surveyViewModel.sortSurveys(SortType.LATEST)
+                                sortText = "최신순"
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "좋아요 많은 순",
+                                    fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            onClick = {
+                                surveyViewModel.sortSurveys(SortType.MOST_LIKED)
+                                sortText = "좋아요 많은 순"
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "답변 많은 순",
+                                    fontFamily = NotoSansKr,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            onClick = {
+                                surveyViewModel.sortSurveys(SortType.MOST_RESPONDED)
+                                sortText = "답변 많은 순"
+                                expanded = false
+                            }
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                if (surveys.isEmpty()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally)) // 로딩 표시
-                } else {
-                    LazyColumn {
-                        items(surveys.filter { survey ->
-                            user?.let {
-                                survey.surveyId !in it.surveysCreated && survey.surveyId !in it.surveysParticipated
-                            } ?: true
-                        }) { survey ->
-                            SurveyItem(survey, navController)
-                        }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (surveys.isEmpty()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally)) // 로딩 표시
+            } else {
+                LazyColumn {
+                    items(surveys.filter { survey ->
+                        user?.let {
+                            survey.surveyId !in it.surveysCreated && survey.surveyId !in it.surveysParticipated
+                        } ?: true
+                    }) { survey ->
+                        SurveyItem(survey, navController)
                     }
                 }
             }
         }
-    )
+    }
 }
 
 @Composable

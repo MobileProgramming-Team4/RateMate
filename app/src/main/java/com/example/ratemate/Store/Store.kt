@@ -5,13 +5,35 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -24,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.R
+import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.PointTransaction
 import com.example.ratemate.data.StoreItem
 import com.example.ratemate.data.User
@@ -45,15 +68,17 @@ fun StoreScreen(navController: NavController) {
 
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid
-    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(uid!!)
     val user by userViewModel.user.collectAsState(initial = null)
 
     Log.d("상점 화면", "유저 정보: $user")
 
-    val storeItemViewModel : StoreItemViewModel = viewModel(factory = StoreItemViewModelFactory(
-        StoreItemRepository()
-    ))
+    val storeItemViewModel: StoreItemViewModel = viewModel(
+        factory = StoreItemViewModelFactory(
+            StoreItemRepository()
+        )
+    )
 
     val goods by storeItemViewModel.storeItems.collectAsState(initial = emptyList())
 
@@ -98,8 +123,7 @@ fun StoreScreen(navController: NavController) {
                 Log.d("상점 화면", "상품을 찾을 수 없음")
                 Toast.makeText(context, "상품을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
 
-            }
-            else if (points < item.cost) {
+            } else if (points < item.cost) {
                 Log.d("상점 화면", "id: ${item.itemId} 구매 실패")
                 Toast.makeText(context, "포인트가 부족합니다.", Toast.LENGTH_SHORT).show()
             } else {
@@ -110,7 +134,6 @@ fun StoreScreen(navController: NavController) {
                 addTrans = true
                 addItem = item.itemId
                 addItemName = item.itemName
-
 
 
             }
@@ -126,9 +149,11 @@ fun StoreScreen(navController: NavController) {
                 itemId = addItem
             )
 
-            var pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
-                PointTransactionRepository()
-            ))
+            var pointTransactionViewModel: PointTransactionViewModel = viewModel(
+                factory = PointTransactionViewModelFactory(
+                    PointTransactionRepository()
+                )
+            )
 
             pointTransactionViewModel.addPointTransaction(transaction)
             userViewModel.updateUser(uid, mapOf("PurchaseList" to userPurchaseList))
@@ -146,35 +171,52 @@ fun StoreScreen(navController: NavController) {
 //        }
 
 
+        Scaffold(
+            topBar = {
+                CommonTopAppBar(
+                    title = "Point Store",
+                    onNavigateBack = { },
+                    false
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
 
+                //유저정보
+                val modifier1 = Modifier.weight(50f)
+                StoreUserInfo(user = user!!, points = points, modifier = modifier1)
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+                //체크박스
+                Divider()
+                val modifier2 = Modifier.height(50.dp)
+                StoreCheckBox(
+                    showPurchased,
+                    modifier = modifier2,
+                    clickCheckBox = { showPurchased = !showPurchased })
 
-            //유저정보
-            val modifier1 = Modifier.weight(50f)
-            StoreUserInfo(user = user!!, points = points ,modifier = modifier1)
+                //상품 리스트
+                val modifier3 = Modifier.weight(50f)
+                StoreGoodsList(
+                    showGoodsList,
+                    userPurchaseList,
+                    showPurchased,
+                    modifier = modifier3,
+                    clickBuy = clickBuy
+                )
 
-            //체크박스
-            Divider()
-            val modifier2 = Modifier.height(50.dp)
-            StoreCheckBox(showPurchased, modifier = modifier2, clickCheckBox = { showPurchased = !showPurchased })
-
-            //상품 리스트
-            val modifier3 = Modifier.weight(50f)
-            StoreGoodsList(showGoodsList, userPurchaseList ,showPurchased, modifier = modifier3, clickBuy = clickBuy)
-
+            }
         }
-
 
     }
 }
 
 
-
 @Composable
-fun getExampleGoodsList() : List<StoreItem> {
+fun getExampleGoodsList(): List<StoreItem> {
     val goodsList = mutableListOf<StoreItem>()
 
     goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
@@ -188,12 +230,12 @@ fun getExampleGoodsList() : List<StoreItem> {
 
 
 @Composable
-fun StoreUserInfo(user: User, points : Int , modifier: Modifier) {
+fun StoreUserInfo(user: User, points: Int, modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.Transparent)
-    ){
+    ) {
         Image(
             painter = painterResource(id = R.drawable.storebackground),
             contentDescription = null,
@@ -220,13 +262,13 @@ fun StoreUserInfo(user: User, points : Int , modifier: Modifier) {
                     .background(Color.Gray, shape = CircleShape)
             )
             Spacer(modifier = Modifier.height(20.dp))
-            Column (
+            Column(
                 modifier =
                 Modifier
                     .background(Color.White.copy(alpha = 0.8f))
                     .padding(8.dp)
                     .clip(MaterialTheme.shapes.medium)
-            ){
+            ) {
                 Text(text = user.email, style = MaterialTheme.typography.h6)
                 Text(text = "잔여 포인트: $points", style = MaterialTheme.typography.body1)
             }
@@ -237,16 +279,16 @@ fun StoreUserInfo(user: User, points : Int , modifier: Modifier) {
 }
 
 @Composable
-fun StoreCheckBox( showPurchased : Boolean ,modifier : Modifier, clickCheckBox : () -> Unit){
-    Row (
+fun StoreCheckBox(showPurchased: Boolean, modifier: Modifier, clickCheckBox: () -> Unit) {
+    Row(
         modifier = modifier
             .background(Color.Gray.copy(alpha = 0.1f))
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Checkbox(
             checked = showPurchased,
-            onCheckedChange = {clickCheckBox() },
+            onCheckedChange = { clickCheckBox() },
             modifier = Modifier.padding(start = 16.dp, end = 8.dp)
         )
         Text(
@@ -258,9 +300,10 @@ fun StoreCheckBox( showPurchased : Boolean ,modifier : Modifier, clickCheckBox :
 }
 
 @Composable
-fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
-                   showPurchased: Boolean, modifier: Modifier, clickBuy: (String) -> Unit
-){
+fun StoreGoodsList(
+    goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
+    showPurchased: Boolean, modifier: Modifier, clickBuy: (String) -> Unit
+) {
 
     var showGoodsList by rememberSaveable { mutableStateOf(goodsList) }
 
@@ -272,8 +315,8 @@ fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
 
     LazyColumn(
         modifier = modifier
-    ){
-        items(showGoodsList){
+    ) {
+        items(showGoodsList) {
             ShowGoods(goods = it, isPurchased = purchasedList.contains(it), clickBuy = clickBuy)
             Divider()
         }
@@ -281,7 +324,7 @@ fun StoreGoodsList(goodsList: List<StoreItem>, purchasedList: List<StoreItem>,
 }
 
 @Composable
-fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit){
+fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
 
@@ -298,11 +341,11 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit
                 }
             }
             .background(if (isPurchased) Color.Gray.copy(alpha = 0.8f) else Color.Transparent)
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-        ){
+        ) {
             Text(text = goods.itemName, style = MaterialTheme.typography.h6)
             Text(text = goods.description, style = MaterialTheme.typography.body1)
             Text(text = "${goods.cost} 포인트", style = MaterialTheme.typography.body2)

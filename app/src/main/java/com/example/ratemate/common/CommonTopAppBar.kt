@@ -23,7 +23,7 @@ import com.example.ratemate.ui.theme.NotoSansKr
 
 
 @Composable
-fun CommonTopAppBar(title: String, onNavigateBack: () -> Unit) {
+fun CommonTopAppBar(title: String, onNavigateBack: () -> Unit, showBackButton: Boolean) {
     Column {
         TopAppBar(
             title = {
@@ -36,14 +36,16 @@ fun CommonTopAppBar(title: String, onNavigateBack: () -> Unit) {
                         modifier = Modifier.padding(end = 48.dp),
                         fontFamily = NotoSansKr,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         color = colorResource(id = R.color.gray_900)
                     )
                 }
             },
             navigationIcon = {
-                IconButton(onClick = { onNavigateBack() }) {
-                    Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                if (showBackButton) {
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                    }
                 }
             },
             backgroundColor = colorResource(id = R.color.white),

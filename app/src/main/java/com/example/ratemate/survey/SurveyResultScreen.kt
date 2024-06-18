@@ -1,4 +1,4 @@
-package com.example.ratemate.home
+package com.example.ratemate.survey
 
 import android.graphics.Paint
 import android.util.Log
@@ -432,7 +432,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
         Scaffold(
             topBar = {
-                CommonTopAppBar(title = "결과", onNavigateBack = { navController.popBackStack() })
+                CommonTopAppBar(title = "Result", onNavigateBack = { navController.popBackStack() }, true)
             }
         ) { paddingValues ->
             //전체화면 Column

@@ -21,6 +21,7 @@ import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
 import com.example.ratemate.survey.AnswerSurveyScreen
 import com.example.ratemate.survey.CreateSurveyScreen
+import com.example.ratemate.survey.SurveyResultScreen
 
 
 sealed class HomeNavRoutes (val route: String) {

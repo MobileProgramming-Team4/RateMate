@@ -97,9 +97,7 @@ fun CreateSurveyScreen(navController: NavHostController) {
     } else {
         Scaffold(
             topBar = {
-                CommonTopAppBar(title = "등록하기", onNavigateBack = {
-                    navController.navigate("home")
-                })
+                CommonTopAppBar(title = "Create", onNavigateBack = { }, false)
             }
         ) { paddingValues ->
             Column(
@@ -238,11 +236,16 @@ fun CreateSurveyScreen(navController: NavHostController) {
                         )
 
                         // 포인트 증가
-                        userViewModel.updateUser(userUid, mapOf( "points" to user!!.points + surveyPoint))
+                        userViewModel.updateUser(
+                            userUid,
+                            mapOf("points" to user!!.points + surveyPoint)
+                        )
 
-                        val pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
-                            PointTransactionRepository()
-                        ))
+                        val pointTransactionViewModel: PointTransactionViewModel = viewModel(
+                            factory = PointTransactionViewModelFactory(
+                                PointTransactionRepository()
+                            )
+                        )
                         pointTransactionViewModel.addPointTransaction(
                             PointTransaction(
                                 transactionId = "",
