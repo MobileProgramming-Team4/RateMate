@@ -19,11 +19,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -258,18 +261,18 @@ fun StoreUserInfo(user: User, points: Int, modifier: Modifier) {
                 painter = painterResource(id = user.profileImage.toInt()),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(80.dp)
-                    .background(Color.Gray, shape = CircleShape)
+                    .size(100.dp)
+                    .clip(CircleShape)
             )
             Spacer(modifier = Modifier.height(20.dp))
             Column(
-                modifier =
-                Modifier
+                modifier = Modifier
                     .background(Color.White.copy(alpha = 0.8f))
                     .padding(8.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                    .clip(MaterialTheme.shapes.medium),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = user.email, style = MaterialTheme.typography.h6)
+                Text(text = "${user.email}님", style = MaterialTheme.typography.h6)
                 Text(text = "잔여 포인트: $points", style = MaterialTheme.typography.body1)
             }
 
@@ -289,7 +292,11 @@ fun StoreCheckBox(showPurchased: Boolean, modifier: Modifier, clickCheckBox: () 
         Checkbox(
             checked = showPurchased,
             onCheckedChange = { clickCheckBox() },
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+            colors = CheckboxDefaults.colors(
+                checkedColor = colorResource(R.color.main_blue)
+            )
+
         )
         Text(
             text = "구매한 상품 포함",
@@ -342,12 +349,17 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit
             }
             .background(if (isPurchased) Color.Gray.copy(alpha = 0.8f) else Color.Transparent)
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = goods.itemName, style = MaterialTheme.typography.h6)
-            Text(text = goods.description, style = MaterialTheme.typography.body1)
+            Column {
+                Text(text = goods.itemName, style = MaterialTheme.typography.h6)
+                Text(text = goods.description, style = MaterialTheme.typography.body1)
+            }
             Text(text = "${goods.cost} 포인트", style = MaterialTheme.typography.body2)
         }
 
@@ -363,16 +375,22 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit
                     onClick = {
                         clickBuy(goods.itemId)
                         showDialog = false
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.main_blue)
+                    )
                 ) {
-                    Text("확인")
+                    Text("확인", color = colorResource(R.color.white))
                 }
             },
             dismissButton = {
                 Button(
-                    onClick = { showDialog = false }
+                    onClick = { showDialog = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.gray_500)
+                    )
                 ) {
-                    Text("취소")
+                    Text("취소", color = colorResource(R.color.white))
                 }
             }
 

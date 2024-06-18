@@ -1,6 +1,7 @@
 package com.example.ratemate.myPage
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,16 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -191,32 +196,46 @@ fun Point(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(350.dp)
+                    .background(Color.Transparent)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.small_logo2), // 실제 drawable로 교체
+                    painter = painterResource(id = R.drawable.storebackground),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .height(300.dp)
+                        .alpha(0.7f),
                     contentScale = ContentScale.Crop,
                 )
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 20.dp),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "${user!!.email}님",
-                        fontSize = 30.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
+                    Image(
+                        painter = painterResource(id = user!!.profileImage.toInt()),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
                     )
-                    Text(
-                        text = "잔여 포인트: ${user!!.points}",
-                        fontSize = 28.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Column(
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.8f))
+                            .padding(8.dp)
+                            .clip(MaterialTheme.shapes.medium),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "${user!!.email}님", style = MaterialTheme.typography.h6
+                        )
+                        Text(
+                            text = "잔여 포인트: ${user!!.points}",
+                            style = MaterialTheme.typography.body1
+                        )
+                    }
                 }
 
             }
@@ -348,30 +367,28 @@ fun Quest(navController: NavHostController, startnav: NavController) {
 
 }
 
-//@Composable
-//fun SurveyItem(survey: SurveyV2, navController: NavController) {
-//    Card(modifier = Modifier
-//        .fillMaxWidth()
-//        .padding(vertical = 8.dp)
-//        .clickable { navController.navigate("Result/${survey.surveyId}") }) {
-//        Column(modifier = Modifier.padding(16.dp)) {
-//            Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
-//            Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)
-//            Text(text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.numOfComments}", style = MaterialTheme.typography.bodySmall)
-//        }
-//    }
-//}
-
 @Composable
 fun PointItem(itemName: String, itemPoints: Int) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = itemName, style = MaterialTheme.typography.headlineSmall)
-            Text(text = "${itemPoints}P", style = MaterialTheme.typography.headlineSmall)
+        Column {
+            Text(
+                text = itemName,
+                fontFamily = NotoSansKr,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+            )
         }
+        Text(
+            text = "${itemPoints}P",
+            fontFamily = NotoSansKr,
+            fontSize = 18.sp,
+        )
     }
+    Divider()
 }

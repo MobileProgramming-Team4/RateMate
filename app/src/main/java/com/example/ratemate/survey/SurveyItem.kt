@@ -26,7 +26,7 @@ fun SurveyItem(survey: SurveyV2, navController: NavController, destination: Stri
             .padding(vertical = 8.dp)
             .clickable { navController.navigate("$destination/${survey.surveyId}") },
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.gray_50),
+            containerColor = colorResource(R.color.gray_100),
         ),
     ) {
         Column(
