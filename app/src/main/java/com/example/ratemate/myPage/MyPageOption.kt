@@ -322,7 +322,7 @@ fun SurveyItem(survey: SurveyV2, navController: NavController) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
             Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.response.size}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.numOfComments}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

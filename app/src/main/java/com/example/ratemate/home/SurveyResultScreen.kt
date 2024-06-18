@@ -127,9 +127,6 @@ fun SurveyResultScreen(SurveyID: String?, navController: NavController){
 
     val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = null)
 
-
-
-
     //테스트용 -> 예시 설문 추가
 //    var addSurvey by remember { mutableStateOf(false) }
 //    LaunchedEffect(Unit) {
@@ -142,6 +139,8 @@ fun SurveyResultScreen(SurveyID: String?, navController: NavController){
 //        AddExampleSurveyV2()
 //    }
 
+
+    //유저 정보와 설문 정보가 모두 로드되면 화면 출력
     if (user != null && surveyResult != null) {
         Log.d("설문결과 화면", "user : $user")
         Log.d("설문결과 화면", "surveyResult : $surveyResult")
@@ -162,12 +161,9 @@ fun SurveyResultScreen(SurveyID: String?, navController: NavController){
 fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavController) {
 
 
-
     val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
         SurveyV2Repository()
     ))
-
-
 
     surveyV2ViewModel.getSurvey(Result.surveyId)
     val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = Result)
@@ -191,13 +187,15 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
         var newComment by remember { mutableStateOf("") }
 
+        val commentPoint = 5
+
 
         //해당 유저가 좋아요를 눌렀는지 확인
         var isLiked by remember {
             mutableStateOf(surveyResult!!.likes.usersWhoLiked.find { it == user.userId } != null)
         }
 
-        //좋아요를 눌렀을때 실행될 함수
+        //섬문의 좋아요를 눌렀을때 실행될 함수
         val clickLikes = {
             if (isLiked) {
                 isLiked = false
@@ -252,10 +250,9 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         }
 
 
+
+
         var addComment by remember { mutableStateOf(false) }
-
-
-
         //댓글 입력 버튼 클릭시 실행될 함수
         val onClickSend = @Composable { comment: String ->
             if (comment == "") {
@@ -292,13 +289,12 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                             dislike = Dislike()
                         )
 
-                        //댓글 추가시 유저 포인트 1 증가
+                        //댓글 추가시 유저 포인트 증가
                         val auth = FirebaseAuth.getInstance()
                         val userUid = auth.currentUser?.uid
-                        val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
-                        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + 1))
+                        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + commentPoint))
 
-                        var pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
+                        val pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
                             PointTransactionRepository()
                         )
                         )
@@ -307,7 +303,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                             PointTransaction(
                                 transactionId = "",
                                 userId = user.userId,
-                                amount = 1,
+                                amount = commentPoint,
                                 transactionType = "댓글 작성",
                                 transactionDate = Date().toString()
                             )
@@ -347,7 +343,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
             }
         }
 
-        //설문 수정 및 삭제
+        //설문 삭제
         if(showDialog){
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -379,8 +375,9 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
             )
         }
 
-        var showLog = false
+
         //좋아요, 싫어요 버튼 클릭시 실행될 함수
+        var showLog = false
         val onClickLikeDislike = {
             showLog = true
 
@@ -391,8 +388,8 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         }
 
 
-        var changedLike by remember { mutableStateOf(false) }
         //좋아요 눌렀을 때 동기화
+        var changedLike by remember { mutableStateOf(false) }
         LaunchedEffect(key1 = likes, key2 = isLiked) {
             changedLike = true
             Log.d("좋아요", "좋아요 : $likes")
@@ -428,6 +425,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         }
 
 
+        //기본값 -> 인기순 정렬
         LaunchedEffect(Unit) {
             clickSortByLikes()
         }
@@ -678,7 +676,7 @@ fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
                 ),
                 offset = DpOffset(offsetSize.width.dp, 0.dp)
             ){
-                DropdownMenuItem(text = { Text("수정") }, onClick = { editSurvey(); expanded = false })
+//                DropdownMenuItem(text = { Text("수정") }, onClick = { editSurvey(); expanded = false })
                 DropdownMenuItem(text = { Text("삭제") }, onClick = { removeSurvey(); expanded = false})
             }
 
@@ -778,6 +776,7 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
             }
 
 
+            Spacer(modifier = Modifier.height(20.dp))
             //설문 결과
             ShowResult(result = content[currentContent], userChoice = userChoiceList[currentContent], modifier = Modifier.weight(8f))
 
@@ -971,7 +970,8 @@ fun ShowCounts(
 @Composable
 fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier){
     var sendInfo by remember { mutableStateOf(true) }
-    val changedCommentList = mutableListOf<changedComment>()
+    val changedCommentList by rememberSaveable { mutableStateOf(mutableListOf<changedComment>()) }
+    Log.d("댓글2", "처음 리스트 : $changedCommentList")
 
     LazyColumn(
         modifier = modifier
@@ -998,24 +998,34 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                 comment.like.count = like
                 comment.dislike.count = dislike
                 val changedComment = changedComment(comment.commentId, isLiked, isDisliked)
-                changedCommentList.add(changedComment)
 
-                Log.d("댓글", "changedComment : $changedComment")
+                if (changedCommentList.find { it.commentId == changedComment.commentId } == null) {
+                    changedCommentList.add(changedComment)
+                    Log.d("댓글2", "리스트 추가 : $changedCommentList")
+                }
+                else if (changedCommentList.find { it.commentId == changedComment.commentId } != changedComment) {
+                    changedCommentList.remove(changedCommentList.find { it.commentId == changedComment.commentId })
+                    changedCommentList.add(changedComment)
+                    Log.d("댓글2", "리스트 최신화 : $changedCommentList")
+                }
+
+                Log.d("댓글2", "바뀐 코멘트 : $changedComment")
+                Log.d("댓글2", "보내는 리스트 : $changedCommentList")
 
                 sendInfo = true
 
             }
+
+//            LaunchedEffect(key1 = Unit) {
+//                sendInfo = true
+//            }
+//
+//            LaunchedEffect(key1 = comments) {
+//                sendInfo = true
+//            }
 
             LaunchedEffect(key1 = changedCommentList) {
-                sendInfo = true
-            }
-
-            LaunchedEffect(key1 = Unit) {
-                sendInfo = true
-            }
-
-            LaunchedEffect(key1 = comments) {
-                sendInfo = true
+                Log.d("댓글2", "리스트 변경 감지 : $changedCommentList")
             }
 
             if (sendInfo) {
@@ -1025,17 +1035,22 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                 surveyV2ViewModel.getSurvey(surveyResult.surveyId)
                 val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
                 val loadedSurvey by surveyV2ViewModel.survey.collectAsState(initial = surveyResult)
-                Log.d("댓글2", "changedCommentList : $changedCommentList")
                 try {
+                    Log.d("댓글2", "받은 리스트 1: $changedCommentList")
                     if (isSurveyLoaded) {
+                        Log.d("댓글2", "댓글 업데이트 시작")
                         sendInfo = false
                         val loadedComments = loadedSurvey!!.comments.toMutableList()
-                        loadedComments.forEach { loadedComment ->
-                            Log.d("댓글2", "loadedComment : $loadedComment")
-                            changedCommentList.forEach { changedComment ->
+                        for (loadedComment in loadedComments) {
+                            Log.d("댓글2", "loadedComment : ${loadedComment.commentId}")
+
+                            val iterator = changedCommentList.iterator()
+                            while (iterator.hasNext()) {
+                                val changedComment = iterator.next()
+                                Log.d("댓글2", "코멘트 : ${changedComment.commentId}")
                                 if (loadedComment.commentId == changedComment.commentId) {
                                     loadedComment.like.usersWhoLiked = loadedComment.like.usersWhoLiked.toMutableList().apply {
-                                        if(loadedComment.like.usersWhoLiked.find { it == user.userId } != null){
+                                        if (loadedComment.like.usersWhoLiked.find { it == user.userId } != null) {
                                             Log.d("댓글2", "좋아요 누른 유저 찾음")
                                             if (!changedComment.isLiked) {
                                                 Log.d("댓글2", "좋아요 취소")
@@ -1047,10 +1062,9 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                                                 add(user.userId)
                                             }
                                         }
-
                                     }
                                     loadedComment.dislike.usersWhoDisliked = loadedComment.dislike.usersWhoDisliked.toMutableList().apply {
-                                        if(loadedComment.dislike.usersWhoDisliked.find { it == user.userId } != null){
+                                        if (loadedComment.dislike.usersWhoDisliked.find { it == user.userId } != null) {
                                             if (!changedComment.isDisliked) {
                                                 remove(user.userId)
                                             }
@@ -1060,25 +1074,25 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                                             }
                                         }
                                     }
+                                    iterator.remove() // Iterator를 사용하여 안전하게 제거
                                 }
-                                changedCommentList.remove(changedComment)
                             }
+
+                            Log.d("댓글2", "좋아요 : ${loadedComment.like.usersWhoLiked}")
+                            Log.d("댓글2", "싫어요 : ${loadedComment.dislike.usersWhoDisliked}")
 
                             loadedComment.like.count = loadedComment.like.usersWhoLiked.size
                             loadedComment.dislike.count = loadedComment.dislike.usersWhoDisliked.size
-
                         }
 
-                        Log.d("댓글2", "loadedComments : $loadedComments")
-
+                        Log.d("댓글2", "업데이트 된 리스트 : $loadedComments")
                         surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to loadedComments))
-
-
                     }
+
+                } catch (e: Exception) {
+                    Log.d("댓글2", "댓글 업데이트 에러 : $e")
                 }
-                catch (e: Exception) {
-                    Log.d("댓글2", "댓글 업데이트 에러")
-                }
+
 
             }
 
@@ -1128,7 +1142,6 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
         }
 
     }
-
 
 }
 

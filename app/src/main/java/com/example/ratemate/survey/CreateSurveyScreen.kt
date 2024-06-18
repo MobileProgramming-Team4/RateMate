@@ -26,6 +26,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -47,16 +48,21 @@ import com.example.ratemate.R
 import com.example.ratemate.common.CommonTextField
 import com.example.ratemate.common.CommonTopAppBar
 import com.example.ratemate.data.Like
+import com.example.ratemate.data.PointTransaction
 import com.example.ratemate.data.QnA
 import com.example.ratemate.data.SurveyV2
+import com.example.ratemate.repository.PointTransactionRepository
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
 import com.example.ratemate.ui.theme.NotoSansKr
+import com.example.ratemate.viewModel.PointTransactionViewModel
+import com.example.ratemate.viewModel.PointTransactionViewModelFactory
 import com.example.ratemate.viewModel.SurveyV2ViewModel
 import com.example.ratemate.viewModel.SurveyV2ViewModelFactory
 import com.example.ratemate.viewModel.UserViewModel
 import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Date
 
 // 설문조사 생성 화면
 @Composable
@@ -76,6 +82,9 @@ fun CreateSurveyScreen(navController: NavHostController) {
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(userUid)
     val user by userViewModel.user.collectAsState(initial = null)
+
+    // 설문 등록 시 포인트 증가
+    val surveyPoint = 50
 
     if (user == null) {
         Column(
@@ -189,6 +198,7 @@ fun CreateSurveyScreen(navController: NavHostController) {
 
                     var check by remember { mutableStateOf("success") }
 
+                    // 유효성 검사
                     if (surveyTitle == "") {
                         check = "제목이 비어있습니다"
                     } else if (questionsList.size == 0) {
@@ -211,8 +221,8 @@ fun CreateSurveyScreen(navController: NavHostController) {
                             content = "", // 필요시 설정
                             likes = Like(),
                             numOfComments = 0,
-                            createdDate = "", // 필요시 설정
-                            modifiedDate = "", // 필요시 설정
+                            createdDate = Date().toString(),
+                            modifiedDate = Date().toString(),
                             status = "active",
                             qnA = questionsList.mapIndexed { index, questionItem ->
                                 QnA(
@@ -226,10 +236,29 @@ fun CreateSurveyScreen(navController: NavHostController) {
                             response = mutableListOf(),
                             comments = mutableListOf()
                         )
+
+                        // 포인트 증가
+                        userViewModel.updateUser(userUid, mapOf( "points" to user!!.points + surveyPoint))
+
+                        val pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
+                            PointTransactionRepository()
+                        ))
+                        pointTransactionViewModel.addPointTransaction(
+                            PointTransaction(
+                                transactionId = "",
+                                userId = userUid,
+                                amount = surveyPoint,
+                                transactionType = "설문 등록 보상",
+                                transactionDate = Date().toString()
+                            )
+                        )
+
+                        // 설문조사 등록
                         viewModel.addSurvey(surveyData)
                         userViewModel.addSurveyToCreated(userUid, surveyData.surveyId)
                         navController.navigate("home")
                     } else {
+                        // 실패 시 토스트 메시지 출력
                         Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -250,6 +279,12 @@ fun QuestionEditor(
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
+
+            LaunchedEffect(key1 = question) {
+                questionText = question.question
+                answerTexts.clear()
+                answerTexts.addAll(question.answers)
+            }
             CommonTextField(
                 label = "질문",
                 value = questionText,
@@ -310,8 +345,8 @@ fun QuestionEditor(
                 IconButton(
                     onClick = {
                         try {
-                            answerTexts.removeAt(index)
-                            question.answers.removeAt(index)
+//                            answerTexts.removeAt(index)
+//                            question.answers.removeAt(index)
                             onRemoveAnswer(index)
                         } catch (e: IndexOutOfBoundsException) {
                             Log.d("설문 생성", "Index out of bounds")
@@ -329,9 +364,9 @@ fun QuestionEditor(
                 .fillMaxWidth()
                 .height(40.dp),
             onClick = {
-                answerTexts.add("")
-                question.answers.add("")
-//                onAddAnswer()
+//                answerTexts.add("")
+//                question.answers.add("")
+                onAddAnswer()
             },
             colors = ButtonDefaults.buttonColors(colorResource(id = R.color.main_blue)),
             contentPadding = PaddingValues(vertical = 0.dp)

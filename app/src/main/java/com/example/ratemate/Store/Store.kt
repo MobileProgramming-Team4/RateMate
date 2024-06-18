@@ -55,22 +55,6 @@ fun StoreScreen(navController: NavController) {
         StoreItemRepository()
     ))
 
-    //테스트용 -> 상품 5개 추가
-//    LaunchedEffect(Unit) {
-//        val goodsList = mutableListOf<StoreItem>()
-//
-//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item1", 100, "item1"))
-//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item2", 200, "item2"))
-//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item3", 300, "item3"))
-//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item4", 400, "item4"))
-//        goodsList.add(StoreItem(UUID.randomUUID().toString(), "item5", 500, "item5"))
-//
-//        for (item in goodsList) {
-//            storeItemViewModel.addStoreItem(item)
-//        }
-//
-//    }
-
     val goods by storeItemViewModel.storeItems.collectAsState(initial = emptyList())
 
     var showGoodsList by rememberSaveable { mutableStateOf(goods) }
@@ -79,17 +63,9 @@ fun StoreScreen(navController: NavController) {
         showGoodsList = goods.sortedBy { it.itemName }
     }
 
-
-
-
-    //테스트용 -> 포인트 1000점, 구매목록 초기화
-//    LaunchedEffect(Unit) {
-//        userViewModel.updateUser(uid, mapOf("points" to 1000))
-//        val examplePurchaseList = mutableListOf<StoreItem>()
-//        userViewModel.updateUser(uid, mapOf("PurchaseList" to examplePurchaseList))
-//    }
-
-
+    LaunchedEffect(key1 = Unit) {
+        userViewModel.getUser(uid)
+    }
 
     user?.let {
 
