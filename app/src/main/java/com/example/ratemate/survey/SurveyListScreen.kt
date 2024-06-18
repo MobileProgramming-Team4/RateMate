@@ -1,4 +1,4 @@
-import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,14 +11,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,10 +35,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ratemate.common.CommonTopAppBar
-import com.example.ratemate.data.SurveyV2
 import com.example.ratemate.data.User
 import com.example.ratemate.repository.SurveyV2Repository
 import com.example.ratemate.repository.UserRepository
+import com.example.ratemate.survey.SurveyItem
 import com.example.ratemate.ui.theme.NotoSansKr
 import com.example.ratemate.viewModel.SortType
 import com.example.ratemate.viewModel.SurveyV2ViewModel
@@ -178,7 +176,7 @@ fun SurveyListScreen(navController: NavController) {
                             survey.surveyId !in it.surveysCreated && survey.surveyId !in it.surveysParticipated
                         } ?: true
                     }) { survey ->
-                        SurveyItem(survey, navController)
+                        SurveyItem(survey, navController, "AnswerSurvey")
                     }
                 }
             }
@@ -186,19 +184,3 @@ fun SurveyListScreen(navController: NavController) {
     }
 }
 
-@Composable
-fun SurveyItem(survey: SurveyV2, navController: NavController) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)
-        .clickable { navController.navigate("AnswerSurvey/${survey.surveyId}") }) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = survey.title, style = MaterialTheme.typography.headlineSmall)
-            Text(text = "작성자: ${survey.creatorId}", style = MaterialTheme.typography.bodyMedium)
-            Text(
-                text = "좋아요: ${survey.likes.count}, 답변 수: ${survey.response.size}",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
-}
