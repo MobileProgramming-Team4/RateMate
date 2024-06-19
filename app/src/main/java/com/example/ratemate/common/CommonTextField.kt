@@ -19,7 +19,8 @@ fun CommonTextField(
     onValueChange: (String) -> Unit,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         label = { Text(label) },
@@ -33,6 +34,7 @@ fun CommonTextField(
             backgroundColor = colorResource(id = R.color.gray_50),
             unfocusedIndicatorColor = Color.Transparent,
             focusedIndicatorColor = colorResource(id = R.color.gray_400)
-        )
+        ),
+        placeholder = placeholder,
     )
 }

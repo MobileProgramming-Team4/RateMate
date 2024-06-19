@@ -94,7 +94,7 @@ fun AnswerSurveyScreen(navController: NavController, surveyId: String?) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(title = "설문조사", onNavigateBack = { navController.popBackStack() })
+            CommonTopAppBar(title = "Answer", onNavigateBack = { navController.popBackStack() }, true)
         }
     ) { paddingValues ->
         if ((isSurveyLoaded && survey != null )  && loadUser != null){

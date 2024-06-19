@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ratemate.home.HomeNavRoutes
-import com.example.ratemate.home.SurveyResultScreen
+import com.example.ratemate.survey.SurveyResultScreen
 
 sealed class SurveyNavRoutes (val route: String) {
     object AnswerSurvey: SurveyNavRoutes("AnswerSurvey")

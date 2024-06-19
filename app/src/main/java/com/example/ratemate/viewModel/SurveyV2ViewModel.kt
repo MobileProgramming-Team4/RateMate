@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SurveyV2ViewModelFactory(private val repository: SurveyV2Repository) : ViewModelProvider.Factory {
+class SurveyV2ViewModelFactory(private val repository: SurveyV2Repository) :
+    ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SurveyV2ViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -31,7 +32,6 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
     private val _isSurveyLoaded = MutableStateFlow(false)
     val isSurveyLoaded: StateFlow<Boolean> = _isSurveyLoaded.asStateFlow()
 
-
     fun addSurvey(survey: SurveyV2) {
         repository.addSurvey(survey)
     }
@@ -46,28 +46,21 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
 
     fun getAllSurveys() {
         viewModelScope.launch {
-            repository.getAllSurveys().collect {
-                _surveys.value = it
+            repository.getAllSurveys().collect { surveysList ->
+                _surveys.value = surveysList.sortedByDescending { it.createdDate }
             }
         }
     }
 
     fun getSurvey(surveyId: String) {
         viewModelScope.launch {
-
             _isSurveyLoaded.value = false
-
             repository.getSurvey(surveyId).collect {
                 _survey.value = it
                 _isSurveyLoaded.value = true
             }
         }
     }
-
-//    fun setSurvey(survey: SurveyV2) {
-//        _survey.value = survey
-//
-//    }
 
     fun sortSurveys(sortType: SortType) {
         viewModelScope.launch {
@@ -80,6 +73,7 @@ class SurveyV2ViewModel(private val repository: SurveyV2Repository) : ViewModel(
         }
     }
 }
+
 
 enum class SortType {
     LATEST, MOST_LIKED, MOST_RESPONDED

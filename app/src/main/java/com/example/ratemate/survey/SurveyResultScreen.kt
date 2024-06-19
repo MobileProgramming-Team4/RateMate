@@ -1,6 +1,7 @@
-package com.example.ratemate.home
+package com.example.ratemate.survey
 
 import android.graphics.Paint
+import android.icu.text.SimpleDateFormat
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbDownOffAlt
@@ -44,6 +45,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -65,15 +67,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
@@ -102,25 +105,28 @@ import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 @Composable
-fun SurveyResultScreen(SurveyID: String?, navController: NavController){
+fun SurveyResultScreen(SurveyID: String?, navController: NavController) {
     Log.d("설문결과 화면", "SurveyID : $SurveyID")
 
     //유저 정보 가져오기
     val auth = FirebaseAuth.getInstance()
     val userUid = auth.currentUser?.uid
-    val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepository()))
     userViewModel.getUser(userUid!!)
     val user by userViewModel.user.collectAsState(initial = null)
 
 
     //설문 정보 가져오기
     val surveyId = SurveyID //전달 받아야 하는 값
-    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
-        SurveyV2Repository()
-    ))
+    val surveyV2ViewModel: SurveyV2ViewModel = viewModel(
+        factory = SurveyV2ViewModelFactory(
+            SurveyV2Repository()
+        )
+    )
     if (surveyId != null) {
         surveyV2ViewModel.getSurvey(surveyId)
     }
@@ -145,8 +151,7 @@ fun SurveyResultScreen(SurveyID: String?, navController: NavController){
         Log.d("설문결과 화면", "user : $user")
         Log.d("설문결과 화면", "surveyResult : $surveyResult")
         ShowSurveyResultScreen(user!!, surveyResult!!, navController)
-    }
-    else {
+    } else {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -158,20 +163,23 @@ fun SurveyResultScreen(SurveyID: String?, navController: NavController){
 }
 
 @Composable
-fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavController) {
+fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavController) {
 
 
-    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
-        SurveyV2Repository()
-    ))
+    val surveyV2ViewModel: SurveyV2ViewModel = viewModel(
+        factory = SurveyV2ViewModelFactory(
+            SurveyV2Repository()
+        )
+    )
 
     surveyV2ViewModel.getSurvey(Result.surveyId)
     val surveyResult by surveyV2ViewModel.survey.collectAsState(initial = Result)
 
 
-    surveyResult?.let{
+    surveyResult?.let {
         val content = surveyResult!!.qnA
-        val userChoice = surveyResult!!.response.find { it.userId == user.userId }?.answer ?: listOf()
+        val userChoice =
+            surveyResult!!.response.find { it.userId == user.userId }?.answer ?: listOf()
 
         var commentList by remember { mutableStateOf(surveyResult!!.comments.toMutableList()) }
         var sortComment by remember { mutableStateOf("인기순") }
@@ -183,7 +191,8 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         var showDialog by remember { mutableStateOf(false) }
 
 
-        val userViewModel : UserViewModel = viewModel (factory = UserViewModelFactory(UserRepository()))
+        val userViewModel: UserViewModel =
+            viewModel(factory = UserViewModelFactory(UserRepository()))
 
         var newComment by remember { mutableStateOf("") }
 
@@ -244,12 +253,13 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                     }
                 }
                 numberOfComment = surveyResult!!.comments.size
-                surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
+                surveyV2ViewModel.updateSurvey(
+                    surveyResult!!.surveyId,
+                    mapOf("numOfComments" to numberOfComment)
+                )
 
             }
         }
-
-
 
 
         var addComment by remember { mutableStateOf(false) }
@@ -257,11 +267,9 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         val onClickSend = @Composable { comment: String ->
             if (comment == "") {
                 Toast.makeText(context, "댓글을 입력해주세요", Toast.LENGTH_SHORT).show()
-            } else if (newComment != ""){
+            } else if (newComment != "") {
                 Toast.makeText(context, "잠시 후 다시 시도해 주세요", Toast.LENGTH_SHORT).show()
-            }
-
-            else {
+            } else {
                 newComment = comment
                 addComment = true
                 Toast.makeText(context, "댓글이 등록되었습니다", Toast.LENGTH_SHORT).show()
@@ -292,11 +300,15 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                         //댓글 추가시 유저 포인트 증가
                         val auth = FirebaseAuth.getInstance()
                         val userUid = auth.currentUser?.uid
-                        userViewModel.updateUser(userUid!!, mapOf( "points" to user.points + commentPoint))
-
-                        val pointTransactionViewModel : PointTransactionViewModel = viewModel(factory = PointTransactionViewModelFactory(
-                            PointTransactionRepository()
+                        userViewModel.updateUser(
+                            userUid!!,
+                            mapOf("points" to user.points + commentPoint)
                         )
+
+                        val pointTransactionViewModel: PointTransactionViewModel = viewModel(
+                            factory = PointTransactionViewModelFactory(
+                                PointTransactionRepository()
+                            )
                         )
 
                         pointTransactionViewModel.addPointTransaction(
@@ -311,9 +323,15 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                         //댓글 추가
                         val newCommentList = surveyResult!!.comments.toMutableList()
                         newCommentList.add(add)
-                        surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("comments" to newCommentList))
+                        surveyV2ViewModel.updateSurvey(
+                            surveyResult!!.surveyId,
+                            mapOf("comments" to newCommentList)
+                        )
                         numberOfComment = surveyResult!!.comments.size
-                        surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("numOfComments" to numberOfComment))
+                        surveyV2ViewModel.updateSurvey(
+                            surveyResult!!.surveyId,
+                            mapOf("numOfComments" to numberOfComment)
+                        )
                         commentList = surveyResult!!.comments.toMutableList()
 
                         if (sortComment == "인기순") {
@@ -337,14 +355,14 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
         val removeSurvey = {
             if (user.email != surveyResult!!.creatorId) {
                 Toast.makeText(context, "에러 : 권한이 없습니다.", Toast.LENGTH_SHORT).show()
-            } else{
+            } else {
                 showDialog = true
 
             }
         }
 
         //설문 삭제
-        if(showDialog){
+        if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text("설문 삭제") },
@@ -356,7 +374,10 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                             surveyV2ViewModel.deleteSurvey(surveyResult!!.surveyId)
                             val userCreated = user.surveysCreated.toMutableList()
                             userCreated.remove(surveyResult!!.surveyId)
-                            userViewModel.updateUser(user.userId, mapOf("surveysCreated" to userCreated))
+                            userViewModel.updateUser(
+                                user.userId,
+                                mapOf("surveysCreated" to userCreated)
+                            )
                             Toast.makeText(context, "설문 삭제", Toast.LENGTH_SHORT).show()
 
                             navController.popBackStack()
@@ -405,18 +426,28 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
                 if (isLiked && surveyResult!!.likes.usersWhoLiked.find { it == user.userId } == null) {
                     var userWhoLiked = surveyResult!!.likes.usersWhoLiked.toMutableList()
                     userWhoLiked.add(user.userId)
-                    surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("likes" to Like(
-                        surveyResult!!.likes.count+1, userWhoLiked)))
-                    likes = surveyResult!!.likes.count +1
+                    surveyV2ViewModel.updateSurvey(
+                        surveyResult!!.surveyId, mapOf(
+                            "likes" to Like(
+                                surveyResult!!.likes.count + 1, userWhoLiked
+                            )
+                        )
+                    )
+                    likes = surveyResult!!.likes.count + 1
 
 
-                } else if(!isLiked && surveyResult!!.likes.usersWhoLiked.find { it == user.userId } != null) {
+                } else if (!isLiked && surveyResult!!.likes.usersWhoLiked.find { it == user.userId } != null) {
                     var userWhoLiked = surveyResult!!.likes.usersWhoLiked.toMutableList()
                     userWhoLiked.remove(user.userId)
-                    surveyV2ViewModel.updateSurvey(surveyResult!!.surveyId, mapOf("likes" to Like(
-                        surveyResult!!.likes.count-1, userWhoLiked)))
+                    surveyV2ViewModel.updateSurvey(
+                        surveyResult!!.surveyId, mapOf(
+                            "likes" to Like(
+                                surveyResult!!.likes.count - 1, userWhoLiked
+                            )
+                        )
+                    )
 
-                    likes = surveyResult!!.likes.count -1
+                    likes = surveyResult!!.likes.count - 1
 
                 }
 
@@ -432,7 +463,11 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
         Scaffold(
             topBar = {
-                CommonTopAppBar(title = "결과", onNavigateBack = { navController.popBackStack() })
+                CommonTopAppBar(
+                    title = "Result",
+                    onNavigateBack = { navController.popBackStack() },
+                    true
+                )
             }
         ) { paddingValues ->
             //전체화면 Column
@@ -450,7 +485,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 
 
                 //제목, 작성자
-                val modifier1 = Modifier.height(40.dp)
+                val modifier1 = Modifier.height(80.dp)
                 ShowTitle(
                     title = surveyResult!!.title,
                     writer = surveyResult!!.creatorId,
@@ -493,7 +528,7 @@ fun ShowSurveyResultScreen(user: User, Result : SurveyV2, navController: NavCont
 }
 
 @Composable
-fun AddExampleSurveyV2(){
+fun AddExampleSurveyV2() {
     Log.d("설문 추가", "설문 추가 시작")
     val calendar1 = Calendar.getInstance()
     calendar1.set(2022, 10, 1)
@@ -522,7 +557,8 @@ fun AddExampleSurveyV2(){
     )
 
     commentEX2.like.usersWhoLiked = mutableListOf("1", "2", "3", "4", "5")
-    commentEX2.dislike.usersWhoDisliked = mutableListOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+    commentEX2.dislike.usersWhoDisliked =
+        mutableListOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
     commentEX2.like.count = 5
     commentEX2.dislike.count = 10
 
@@ -540,7 +576,7 @@ fun AddExampleSurveyV2(){
         status = "active",
         qnA = mutableListOf(),
         response = mutableListOf(),
-        comments = mutableListOf( commentEX1, commentEX2)
+        comments = mutableListOf(commentEX1, commentEX2)
 
     )
 
@@ -586,126 +622,118 @@ fun AddExampleSurveyV2(){
         userId = "1",
         answer = mutableListOf(listOf(0), listOf(1), listOf(1, 3), listOf(1))
 
-        )
+    )
 
     val Response2 = Response(
         userId = "2",
         answer = mutableListOf(listOf(1), listOf(0), listOf(2, 3), listOf(0))
 
-        )
+    )
 
     val Response3 = Response(
         userId = "8ByCzSY8UqRTqfViU3luhJdPZKB2",
         answer = mutableListOf(listOf(2), listOf(1), listOf(2, 3), listOf(1))
 
-        )
+    )
 
     SurveyV2.response.add(Response1)
     SurveyV2.response.add(Response2)
     SurveyV2.response.add(Response3)
 
 
-    val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
-        SurveyV2Repository()
-    ))
+    val surveyV2ViewModel: SurveyV2ViewModel = viewModel(
+        factory = SurveyV2ViewModelFactory(
+            SurveyV2Repository()
+        )
+    )
     surveyV2ViewModel.addSurvey(SurveyV2)
 
 }
 
 @Composable
-fun ShowTitle(title: String, writer: String, isMySurvey : Boolean
-              ,modifier: Modifier, editSurvey : () -> Unit,
-              removeSurvey : () -> Unit
+fun ShowTitle(
+    title: String, writer: String, isMySurvey: Boolean, modifier: Modifier, editSurvey: () -> Unit,
+    removeSurvey: () -> Unit
 ) {
-
     var expanded by remember { mutableStateOf(false) }
-    var rowSize by remember { mutableStateOf(Size.Zero) }
-    var iconSize by remember { mutableStateOf(Size.Zero) }
-    var offsetSize by remember { mutableStateOf(Size.Zero) }
 
-    Row(modifier = modifier
-        .fillMaxWidth()
-        .onGloballyPositioned { layoutCoordinates ->
-            rowSize = layoutCoordinates.size.toSize()
-        },
-        verticalAlignment = Alignment.CenterVertically
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
-        //제목
-        Text(
-            text = title,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        //작성자
-        Text(
-            text = if (isMySurvey) "내 설문" else writer,
-            fontSize = 15.sp,
-            color = Color.Gray,
-            modifier = Modifier
-                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
-        )
-
-        if(isMySurvey){
-
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "edit",
+        Column {
+            //제목
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .size(height = 40.dp, width = 20.dp)
-                    .clickable { expanded = true }
-                    .onGloballyPositioned { layoutCoordinates ->
-                        iconSize = layoutCoordinates.size.toSize()
-                    }
+                    .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
             )
-
-            offsetSize = Size(rowSize.width - iconSize.width, 0F)
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                properties = PopupProperties(
-                    focusable = true,
-                    dismissOnBackPress = true,
-                    dismissOnClickOutside = true
-                ),
-                offset = DpOffset(offsetSize.width.dp, 0.dp)
-            ){
-//                DropdownMenuItem(text = { Text("수정") }, onClick = { editSurvey(); expanded = false })
-                DropdownMenuItem(text = { Text("삭제") }, onClick = { removeSurvey(); expanded = false})
-            }
-
-
+            //작성자
+            Text(
+                text = if (isMySurvey) "내 설문" else writer,
+                fontSize = 15.sp,
+                color = Color.Gray,
+                modifier = Modifier
+                    .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
+            )
         }
 
+        if (isMySurvey) {
+            Box {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "edit",
+                    modifier = Modifier
+                        .size(height = 40.dp, width = 20.dp)
+                        .clickable { expanded = true }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    properties = PopupProperties(
+                        focusable = true,
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = true
+                    ),
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("삭제") },
+                        onClick = { removeSurvey(); expanded = false })
+                }
+            }
+        }
     }
 }
 
+
 @Composable
-fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier : Modifier){
+fun ShowMainContent(content: List<QnA>, userChoice: List<List<Int>>, modifier: Modifier) {
 
     val contentSize = content.size
     var currentContent by rememberSaveable { mutableIntStateOf(0) }
 
-    Box(modifier = modifier){
+    Box(modifier = modifier) {
         //회색 배경
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.LightGray.copy(alpha = 0.5f))
-            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorResource(id = R.color.gray_50))
+                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
         )
 
         //내용
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp)
-        ){
+                .padding(16.dp)
+        ) {
 
             //질문 + 이전, 다음 버튼
             Row(
@@ -717,7 +745,7 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
                 //질문
                 Text(
                     text = content[currentContent].question,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(8f)
                 )
@@ -730,7 +758,9 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == 0) Color.Gray else Color.Black,
+                        containerColor = if (currentContent == 0) colorResource(id = R.color.gray_400) else colorResource(
+                            id = R.color.main_blue
+                        ),
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp),
@@ -740,7 +770,8 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
                         imageVector = Icons.Default.ArrowBackIosNew,
                         contentDescription = "back",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp))
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -752,7 +783,9 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == contentSize - 1) Color.Gray else Color.Black,
+                        containerColor = if (currentContent == contentSize - 1) colorResource(id = R.color.gray_400) else colorResource(
+                            id = R.color.main_blue
+                        ),
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp),
@@ -778,21 +811,29 @@ fun ShowMainContent(content : List<QnA>, userChoice : List<List<Int>>, modifier 
 
             Spacer(modifier = Modifier.height(20.dp))
             //설문 결과
-            ShowResult(result = content[currentContent], userChoice = userChoiceList[currentContent], modifier = Modifier.weight(8f))
+            ShowResult(
+                result = content[currentContent],
+                userChoice = userChoiceList[currentContent],
+                modifier = Modifier.weight(8f)
+            )
 
         }
     }
 }
 
 @Composable
-fun ShowResult(result : QnA, userChoice : List<Int>, modifier: Modifier){
+fun ShowResult(result: QnA, userChoice: List<Int>, modifier: Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-    ){
+    ) {
 
         //설문 결과 차트
-        SelectionPercentageChart(answers = result.answerList,choices = result.answerCountList, userChoices = userChoice )
+        SelectionPercentageChart(
+            answers = result.answerList,
+            choices = result.answerCountList,
+            userChoices = userChoice
+        )
 
     }
 }
@@ -803,6 +844,9 @@ fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoi
     val total = choices.sum()
     val percentages = choices.map { it.toFloat() / total * 100 }
 
+    val blue = colorResource(id = R.color.main_blue_300)
+    val gray = colorResource(id = R.color.gray_500)
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -810,14 +854,16 @@ fun SelectionPercentageChart(answers: List<String>, choices: List<Int>, userChoi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 차트
-        Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .weight(3f)) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(3f)
+        ) {
             val barWidth = size.width / (choices.size * 2)
             percentages.forEachIndexed { index, percentage ->
                 val barHeight = size.height * (percentage / 100)
                 drawRect(
-                    color = if (index in userChoices) Color.Green else Color.Gray,
+                    color = if (index in userChoices) blue else gray,
                     topLeft = Offset(index * 2 * barWidth + barWidth / 2, size.height - barHeight),
                     size = Size(barWidth, barHeight)
                 )
@@ -869,14 +915,12 @@ fun ShowCounts(
 ) {
 
     var expanded by remember { mutableStateOf(false) }
-    val selectedText by remember { mutableStateOf("댓글 정렬") }
+    var selectedText by remember { mutableStateOf("인기순") }
     var rowSize by remember { mutableStateOf(Size.Zero) }
-    var boxSize by remember { mutableStateOf(Size.Zero) }
-    var buttonSize by remember { mutableStateOf(Size.Zero) }
-    var offsetSize by remember { mutableStateOf(Size.Zero) }
 
     Row(
         modifier = modifier
+            .padding(start = 16.dp)
             .onGloballyPositioned { layoutCoordinates ->
                 rowSize = layoutCoordinates.size.toSize()
             },
@@ -910,54 +954,40 @@ fun ShowCounts(
 
         Spacer(modifier = Modifier.weight(1f))
         //인기순, 최신순 버튼
-        Box(
-            contentAlignment = Alignment.CenterEnd,
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { layoutCoordinates ->
-                    boxSize = layoutCoordinates.size.toSize()
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selectedText
+            )
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "정렬",
+                        tint = Color.Black
+                    )
                 }
-        ){
-            Button(
-                onClick = {expanded = true},
-                modifier = Modifier
-                    .background(Color.Gray.copy(alpha = 0.5f))
-                    .clip(RoundedCornerShape(6.dp))
-                    .onGloballyPositioned { layoutCoordinates ->
-                        buttonSize = layoutCoordinates.size.toSize()
-                    }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
 
-                ,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(6.dp)
-            ) {
-                Text(
-                    text = selectedText,
-                    modifier = Modifier.safeContentPadding()
-                )
-            }
-            offsetSize = Size(rowSize.width - buttonSize.width, 0F)
+                    DropdownMenuItem(text = { Text(text = "인기순") },
+                        onClick = {
+                            selectedText = "인기순"
+                            clickSortByLikes()
+                            expanded = false
+                        })
 
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                properties = PopupProperties(
-                    dismissOnBackPress = true,
-                    dismissOnClickOutside = true
-                ),
-                offset = DpOffset(offsetSize.width.dp, 0.dp)
-
-            ){
-
-                DropdownMenuItem(text = { Text(text = "인기순") },
-                    onClick = { clickSortByLikes(); expanded = false})
-
-                DropdownMenuItem(text = { Text(text = "최신순") },
-                    onClick = { clickSortByDate(); expanded = false})
+                    DropdownMenuItem(text = { Text(text = "최신순") },
+                        onClick = {
+                            selectedText = "최신순"
+                            clickSortByDate()
+                            expanded = false
+                        })
+                }
             }
 
 
@@ -968,7 +998,7 @@ fun ShowCounts(
 
 
 @Composable
-fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier){
+fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier) {
     var sendInfo by remember { mutableStateOf(true) }
     val changedCommentList by rememberSaveable { mutableStateOf(mutableListOf<changedComment>()) }
     Log.d("댓글2", "처음 리스트 : $changedCommentList")
@@ -981,11 +1011,15 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
             var like by rememberSaveable { mutableIntStateOf(comment.like.count) }
             var dislike by rememberSaveable { mutableIntStateOf(comment.dislike.count) }
 
-            var isLiked by rememberSaveable { mutableStateOf(
-                comment.like.usersWhoLiked.find { it == user.userId } != null) }
+            var isLiked by rememberSaveable {
+                mutableStateOf(
+                    comment.like.usersWhoLiked.find { it == user.userId } != null)
+            }
 
-            var isDisliked by rememberSaveable { mutableStateOf(
-                comment.dislike.usersWhoDisliked.find { it == user.userId } != null) }
+            var isDisliked by rememberSaveable {
+                mutableStateOf(
+                    comment.dislike.usersWhoDisliked.find { it == user.userId } != null)
+            }
 
             LaunchedEffect(comments) {
                 like = comment.like.count
@@ -1002,8 +1036,7 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                 if (changedCommentList.find { it.commentId == changedComment.commentId } == null) {
                     changedCommentList.add(changedComment)
                     Log.d("댓글2", "리스트 추가 : $changedCommentList")
-                }
-                else if (changedCommentList.find { it.commentId == changedComment.commentId } != changedComment) {
+                } else if (changedCommentList.find { it.commentId == changedComment.commentId } != changedComment) {
                     changedCommentList.remove(changedCommentList.find { it.commentId == changedComment.commentId })
                     changedCommentList.add(changedComment)
                     Log.d("댓글2", "리스트 최신화 : $changedCommentList")
@@ -1016,22 +1049,16 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
 
             }
 
-//            LaunchedEffect(key1 = Unit) {
-//                sendInfo = true
-//            }
-//
-//            LaunchedEffect(key1 = comments) {
-//                sendInfo = true
-//            }
-
             LaunchedEffect(key1 = changedCommentList) {
                 Log.d("댓글2", "리스트 변경 감지 : $changedCommentList")
             }
 
             if (sendInfo) {
-                val surveyV2ViewModel : SurveyV2ViewModel = viewModel (factory = SurveyV2ViewModelFactory(
-                    SurveyV2Repository()
-                ))
+                val surveyV2ViewModel: SurveyV2ViewModel = viewModel(
+                    factory = SurveyV2ViewModelFactory(
+                        SurveyV2Repository()
+                    )
+                )
                 surveyV2ViewModel.getSurvey(surveyResult.surveyId)
                 val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
                 val loadedSurvey by surveyV2ViewModel.survey.collectAsState(initial = surveyResult)
@@ -1049,31 +1076,34 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                                 val changedComment = iterator.next()
                                 Log.d("댓글2", "코멘트 : ${changedComment.commentId}")
                                 if (loadedComment.commentId == changedComment.commentId) {
-                                    loadedComment.like.usersWhoLiked = loadedComment.like.usersWhoLiked.toMutableList().apply {
-                                        if (loadedComment.like.usersWhoLiked.find { it == user.userId } != null) {
-                                            Log.d("댓글2", "좋아요 누른 유저 찾음")
-                                            if (!changedComment.isLiked) {
-                                                Log.d("댓글2", "좋아요 취소")
-                                                remove(user.userId)
-                                            }
-                                        } else {
-                                            if (changedComment.isLiked) {
-                                                Log.d("댓글2", "좋아요 추가")
-                                                add(user.userId)
-                                            }
-                                        }
-                                    }
-                                    loadedComment.dislike.usersWhoDisliked = loadedComment.dislike.usersWhoDisliked.toMutableList().apply {
-                                        if (loadedComment.dislike.usersWhoDisliked.find { it == user.userId } != null) {
-                                            if (!changedComment.isDisliked) {
-                                                remove(user.userId)
-                                            }
-                                        } else {
-                                            if (changedComment.isDisliked) {
-                                                add(user.userId)
+                                    loadedComment.like.usersWhoLiked =
+                                        loadedComment.like.usersWhoLiked.toMutableList().apply {
+                                            if (loadedComment.like.usersWhoLiked.find { it == user.userId } != null) {
+                                                Log.d("댓글2", "좋아요 누른 유저 찾음")
+                                                if (!changedComment.isLiked) {
+                                                    Log.d("댓글2", "좋아요 취소")
+                                                    remove(user.userId)
+                                                }
+                                            } else {
+                                                if (changedComment.isLiked) {
+                                                    Log.d("댓글2", "좋아요 추가")
+                                                    add(user.userId)
+                                                }
                                             }
                                         }
-                                    }
+                                    loadedComment.dislike.usersWhoDisliked =
+                                        loadedComment.dislike.usersWhoDisliked.toMutableList()
+                                            .apply {
+                                                if (loadedComment.dislike.usersWhoDisliked.find { it == user.userId } != null) {
+                                                    if (!changedComment.isDisliked) {
+                                                        remove(user.userId)
+                                                    }
+                                                } else {
+                                                    if (changedComment.isDisliked) {
+                                                        add(user.userId)
+                                                    }
+                                                }
+                                            }
                                     iterator.remove() // Iterator를 사용하여 안전하게 제거
                                 }
                             }
@@ -1082,11 +1112,15 @@ fun ShowComments(user : User, comments: List<Comment>, surveyResult: SurveyV2, m
                             Log.d("댓글2", "싫어요 : ${loadedComment.dislike.usersWhoDisliked}")
 
                             loadedComment.like.count = loadedComment.like.usersWhoLiked.size
-                            loadedComment.dislike.count = loadedComment.dislike.usersWhoDisliked.size
+                            loadedComment.dislike.count =
+                                loadedComment.dislike.usersWhoDisliked.size
                         }
 
                         Log.d("댓글2", "업데이트 된 리스트 : $loadedComments")
-                        surveyV2ViewModel.updateSurvey(surveyResult.surveyId, mapOf("comments" to loadedComments))
+                        surveyV2ViewModel.updateSurvey(
+                            surveyResult.surveyId,
+                            mapOf("comments" to loadedComments)
+                        )
                     }
 
                 } catch (e: Exception) {
@@ -1162,70 +1196,90 @@ fun ShowComment(
     clickDislike: () -> Unit
 ) {
 
-    Column {
+    // 날짜 형식 변환
+    val originalFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+    val targetFormat = SimpleDateFormat("yy/MM/dd HH:mm", Locale.ENGLISH)
+    val date: Date = remember(comment.createdDate) {
+        originalFormat.parse(comment.createdDate) ?: Date()
+    }
+    val formattedDate = targetFormat.format(date)
+
+    Column(
+    ) {
         // 댓글 내용
         Row(
-            verticalAlignment = Alignment.Top
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // 프로필 이미지
-            Image(
-                painter = painterResource(id = comment.profileImage.toInt()),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(30.dp))
-            )
+            Row {
+                Image(
+                    painter = painterResource(id = comment.profileImage.toInt()),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                )
 
 
-            // 댓글 내용
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(text = comment.userId, fontWeight = FontWeight.Bold)
-                Text(text = comment.text)
-                Text(text = comment.createdDate, color = Color.Gray, fontSize = 15.sp)
+                // 댓글 내용
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(text = comment.userId, fontWeight = FontWeight.Bold)
+                    Text(text = formattedDate, color = Color.Gray, fontSize = 15.sp)
+                    Text(text = comment.text)
+                }
+            }
+
+
+            //댓글 -> 좋아요, 싫어요
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                // 좋아요
+                Spacer(modifier = Modifier.width(12.dp))
+                Icon(
+                    imageVector = if (isLiked) Icons.Filled.ThumbUp else Icons.Filled.ThumbUpOffAlt,
+                    contentDescription = "Likes",
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            clickLike()
+                        }
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "$like")
+
+
+                // 싫어요
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(
+                    imageVector = if (isDisliked) Icons.Filled.ThumbDown else Icons.Default.ThumbDownOffAlt,
+                    contentDescription = "Dislikes",
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            clickDislike()
+                        })
+
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "$dislike"
+                )
+
             }
 
         }
 
 
-        //댓글 -> 좋아요, 싫어요
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            // 좋아요
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(
-                imageVector = if (isLiked) Icons.Filled.ThumbUp else Icons.Filled.ThumbUpOffAlt,
-                contentDescription = "Likes",
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable {
-                        clickLike()
-                    }
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "$like likes")
-
-
-            // 싫어요
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                imageVector = if (isDisliked) Icons.Filled.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                contentDescription = "Dislikes",
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable {
-                        clickDislike()
-                    })
-
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "$dislike dislikes"
-            )
-
-        }
+        Divider()
     }
 }
 
@@ -1255,9 +1309,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: @Composable (String) -> Un
                 onDone = {
                     if (userComment != "") {
                         sendComment = true
-                    }
-
-                    else {
+                    } else {
                         focusManager.clearFocus()
 
                     }
@@ -1274,7 +1326,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: @Composable (String) -> Un
                 sendComment = true
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black
+                containerColor = colorResource(R.color.main_blue)
             ),
             shape = RoundedCornerShape(10.dp)
         ) {
