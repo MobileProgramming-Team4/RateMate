@@ -116,6 +116,10 @@ fun StoreScreen(navController: NavController) {
         }
         val context = LocalContext.current
 
+        LaunchedEffect(key1 = user) {
+            points = user!!.points
+        }
+
 
         var addTrans by rememberSaveable { mutableStateOf(false) }
         var addItem by rememberSaveable { mutableStateOf("") }
