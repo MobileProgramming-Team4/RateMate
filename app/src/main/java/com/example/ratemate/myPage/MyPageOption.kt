@@ -65,9 +65,7 @@ fun Answer(navController: NavHostController, startnav: NavController) {
     val repository = SurveyV2Repository()
     val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState(initial = emptyList())
-    LaunchedEffect(surveys) {
-        viewModel.getAllSurveys()
-    }
+
 
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid
@@ -77,6 +75,19 @@ fun Answer(navController: NavHostController, startnav: NavController) {
 
     var expanded by remember { mutableStateOf(false) }
     var sortText by remember { mutableStateOf("최신순") }
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllSurveys()
+    }
+
+    LaunchedEffect(key1 = sortText) {
+        when (sortText) {
+            "최신순" -> viewModel.sortSurveys(SortType.LATEST)
+            "좋아요 많은 순" -> viewModel.sortSurveys(SortType.MOST_LIKED)
+            "답변 많은 순" -> viewModel.sortSurveys(SortType.MOST_RESPONDED)
+        }
+    }
+
 
     Scaffold(
         content = { paddingValues ->
@@ -259,9 +270,6 @@ fun Quest(navController: NavHostController, startnav: NavController) {
     val repository = SurveyV2Repository()
     val viewModel: SurveyV2ViewModel = viewModel(factory = SurveyV2ViewModelFactory(repository))
     val surveys by viewModel.surveys.collectAsState(initial = emptyList())
-    LaunchedEffect(surveys) {
-        viewModel.getAllSurveys()
-    }
 
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid
@@ -271,6 +279,18 @@ fun Quest(navController: NavHostController, startnav: NavController) {
 
     var expanded by remember { mutableStateOf(false) }
     var sortText by remember { mutableStateOf("최신순") }
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllSurveys()
+    }
+
+    LaunchedEffect(key1 = sortText) {
+        when (sortText) {
+            "최신순" -> viewModel.sortSurveys(SortType.LATEST)
+            "좋아요 많은 순" -> viewModel.sortSurveys(SortType.MOST_LIKED)
+            "답변 많은 순" -> viewModel.sortSurveys(SortType.MOST_RESPONDED)
+        }
+    }
 
     user?.let {
         Scaffold(
