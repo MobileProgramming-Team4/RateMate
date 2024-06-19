@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -159,10 +160,10 @@ fun Option(navController: NavHostController) {
                 Image(
                     painter = painterResource(id = imgchange), // 프로필 이미지 리소스
                     contentDescription = "Profile Image",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .background(Color.Gray)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -179,8 +180,9 @@ fun Option(navController: NavHostController) {
                             Image(
                                 painter = painterResource(id = img),
                                 contentDescription = "Profile Image",
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(70.dp)
+                                    .size(60.dp)
                                     .clip(CircleShape)
                                     .background(Color.Gray)
                                     .clickable {
@@ -263,9 +265,9 @@ fun Option(navController: NavHostController) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Divider()
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // 로그아웃 버튼
                 Button(

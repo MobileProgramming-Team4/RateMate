@@ -216,6 +216,7 @@ fun Point(navController: NavHostController) {
                     Image(
                         painter = painterResource(id = user!!.profileImage.toInt()),
                         contentDescription = null,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(100.dp)
                             .clip(CircleShape)

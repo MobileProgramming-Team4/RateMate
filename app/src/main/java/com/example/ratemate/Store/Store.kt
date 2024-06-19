@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -137,8 +138,6 @@ fun StoreScreen(navController: NavController) {
                 addTrans = true
                 addItem = item.itemId
                 addItemName = item.itemName
-
-
             }
         }
 
@@ -260,6 +259,7 @@ fun StoreUserInfo(user: User, points: Int, modifier: Modifier) {
             Image(
                 painter = painterResource(id = user.profileImage.toInt()),
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
@@ -356,9 +356,28 @@ fun ShowGoods(goods: StoreItem, isPurchased: Boolean, clickBuy: (String) -> Unit
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(text = goods.itemName, style = MaterialTheme.typography.h6)
-                Text(text = goods.description, style = MaterialTheme.typography.body1)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(
+                        id = context.resources.getIdentifier(
+                            goods.itemName,
+                            "drawable",
+                            context.packageName
+                        )
+                    ),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = goods.itemName,
+                    modifier = Modifier.size(60.dp),
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(text = goods.itemName, style = MaterialTheme.typography.h6)
+                    Text(text = goods.description, style = MaterialTheme.typography.body1)
+                }
             }
             Text(text = "${goods.cost} 포인트", style = MaterialTheme.typography.body2)
         }
