@@ -1,6 +1,7 @@
 package com.example.ratemate.survey
 
 import android.graphics.Paint
+import android.icu.text.SimpleDateFormat
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -103,6 +104,7 @@ import com.example.ratemate.viewModel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -682,7 +684,7 @@ fun ShowTitle(
         }
 
         if (isMySurvey) {
-            Box{
+            Box {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "edit",
@@ -755,7 +757,9 @@ fun ShowMainContent(content: List<QnA>, userChoice: List<List<Int>>, modifier: M
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == 0) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue),
+                        containerColor = if (currentContent == 0) colorResource(id = R.color.gray_400) else colorResource(
+                            id = R.color.main_blue
+                        ),
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp),
@@ -778,7 +782,9 @@ fun ShowMainContent(content: List<QnA>, userChoice: List<List<Int>>, modifier: M
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentContent == contentSize - 1) colorResource(id = R.color.gray_400) else colorResource(id = R.color.main_blue),
+                        containerColor = if (currentContent == contentSize - 1) colorResource(id = R.color.gray_400) else colorResource(
+                            id = R.color.main_blue
+                        ),
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp),
@@ -1042,14 +1048,6 @@ fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, mo
 
             }
 
-//            LaunchedEffect(key1 = Unit) {
-//                sendInfo = true
-//            }
-//
-//            LaunchedEffect(key1 = comments) {
-//                sendInfo = true
-//            }
-
             LaunchedEffect(key1 = changedCommentList) {
                 Log.d("댓글2", "리스트 변경 감지 : $changedCommentList")
             }
@@ -1197,70 +1195,89 @@ fun ShowComment(
     clickDislike: () -> Unit
 ) {
 
-    Column {
+    // 날짜 형식 변환
+    val originalFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+    val targetFormat = SimpleDateFormat("yy/MM/dd HH:mm", Locale.ENGLISH)
+    val date: Date = remember(comment.createdDate) {
+        originalFormat.parse(comment.createdDate) ?: Date()
+    }
+    val formattedDate = targetFormat.format(date)
+
+    Column(
+    ) {
         // 댓글 내용
         Row(
-            verticalAlignment = Alignment.Top
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // 프로필 이미지
-            Image(
-                painter = painterResource(id = comment.profileImage.toInt()),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(30.dp))
-            )
+            Row {
+                Image(
+                    painter = painterResource(id = comment.profileImage.toInt()),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                )
 
 
-            // 댓글 내용
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(text = comment.userId, fontWeight = FontWeight.Bold)
-                Text(text = comment.text)
-                Text(text = comment.createdDate, color = Color.Gray, fontSize = 15.sp)
+                // 댓글 내용
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(text = comment.userId, fontWeight = FontWeight.Bold)
+                    Text(text = formattedDate, color = Color.Gray, fontSize = 15.sp)
+                    Text(text = comment.text)
+                }
+            }
+
+
+            //댓글 -> 좋아요, 싫어요
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                // 좋아요
+                Spacer(modifier = Modifier.width(12.dp))
+                Icon(
+                    imageVector = if (isLiked) Icons.Filled.ThumbUp else Icons.Filled.ThumbUpOffAlt,
+                    contentDescription = "Likes",
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            clickLike()
+                        }
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "$like")
+
+
+                // 싫어요
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(
+                    imageVector = if (isDisliked) Icons.Filled.ThumbDown else Icons.Default.ThumbDownOffAlt,
+                    contentDescription = "Dislikes",
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            clickDislike()
+                        })
+
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "$dislike"
+                )
+
             }
 
         }
 
 
-        //댓글 -> 좋아요, 싫어요
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            // 좋아요
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(
-                imageVector = if (isLiked) Icons.Filled.ThumbUp else Icons.Filled.ThumbUpOffAlt,
-                contentDescription = "Likes",
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable {
-                        clickLike()
-                    }
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "$like likes")
-
-
-            // 싫어요
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                imageVector = if (isDisliked) Icons.Filled.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                contentDescription = "Dislikes",
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable {
-                        clickDislike()
-                    })
-
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "$dislike dislikes"
-            )
-
-        }
+        Divider()
     }
 }
 
@@ -1307,7 +1324,7 @@ fun ShowCommentInput(modifier: Modifier, onClickSend: @Composable (String) -> Un
                 sendComment = true
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black
+                containerColor = colorResource(R.color.main_blue)
             ),
             shape = RoundedCornerShape(10.dp)
         ) {
