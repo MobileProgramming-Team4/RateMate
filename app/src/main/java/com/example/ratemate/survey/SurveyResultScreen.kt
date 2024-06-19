@@ -1204,13 +1204,13 @@ fun ShowComment(
     }
     val formattedDate = targetFormat.format(date)
 
-    Column(
-    ) {
+    Column {
         // 댓글 내용
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1228,10 +1228,12 @@ fun ShowComment(
 
                 // 댓글 내용
                 Spacer(modifier = Modifier.width(8.dp))
-                Column {
+                Column(
+                    modifier = Modifier
+                        .width(200.dp)
+                ) {
                     Text(text = comment.userId, fontWeight = FontWeight.Bold)
                     Text(text = formattedDate, color = Color.Gray, fontSize = 15.sp)
-                    Text(text = comment.text)
                 }
             }
 
@@ -1272,12 +1274,16 @@ fun ShowComment(
                 Text(
                     text = "$dislike"
                 )
-
             }
 
         }
 
-
+        Text(
+            text = comment.text, modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 54.dp, end = 16.dp)
+                .padding(bottom = 16.dp, top = 8.dp)
+        )
 
         Divider()
     }
