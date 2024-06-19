@@ -67,6 +67,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -919,7 +920,7 @@ fun ShowCounts(
 
     Row(
         modifier = modifier
-            .padding(horizontal = 16.dp)
+            .padding(start = 16.dp)
             .onGloballyPositioned { layoutCoordinates ->
                 rowSize = layoutCoordinates.size.toSize()
             },
@@ -1218,6 +1219,7 @@ fun ShowComment(
                 Image(
                     painter = painterResource(id = comment.profileImage.toInt()),
                     contentDescription = "",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(30.dp)
                         .clip(RoundedCornerShape(30.dp))

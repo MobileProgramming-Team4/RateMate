@@ -146,17 +146,16 @@ fun Option(navController: NavHostController) {
 
                     }
 
-                    purchaseProfileList = purchaseProfileList - currentProfile
-
                     Log.d("동기화 확인", "purchaseProfileList : " + purchaseProfileList.toString())
 
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 var imgchange by remember { mutableStateOf(user!!.profileImage) }
+
                 // 프로필 사진 변경 섹션
                 SectionTitle(if (purchaseProfileList.isEmpty()) "프로필 사진" else "프로필 사진 변경")
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Image(
                     painter = painterResource(id = imgchange), // 프로필 이미지 리소스
                     contentDescription = "Profile Image",
@@ -165,7 +164,7 @@ fun Option(navController: NavHostController) {
                         .size(120.dp)
                         .clip(CircleShape)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
 
                 if (purchaseProfileList.isNotEmpty()) {
@@ -182,9 +181,8 @@ fun Option(navController: NavHostController) {
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .size(50.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Gray)
                                     .clickable {
                                         imgchange = img
                                         currentProfile = img
