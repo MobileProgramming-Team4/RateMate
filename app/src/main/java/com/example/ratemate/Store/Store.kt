@@ -236,7 +236,8 @@ fun StoreUserInfo(user: User, points: Int, modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.Transparent)
+            .background(Color.Transparent),
+        contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.storebackground),
@@ -255,7 +256,7 @@ fun StoreUserInfo(user: User, points: Int, modifier: Modifier) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(100.dp))
+
             Image(
                 painter = painterResource(id = user.profileImage.toInt()),
                 contentDescription = null,
