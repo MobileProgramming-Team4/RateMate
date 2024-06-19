@@ -5,9 +5,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -16,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.ratemate.R
 import com.example.ratemate.Store.StoreScreen
 import com.example.ratemate.myPage.MyPageScreen
 import com.example.ratemate.setting.Option
@@ -97,6 +100,13 @@ fun HomeNavigationBar(navController: NavController) {
         HomeNavBarItems.HomeBarItems.forEach { navItem ->
             NavigationBarItem(
                 selected = currentRoute == navItem.route,
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = colorResource(R.color.gray_50),
+                    selectedIconColor = colorResource(R.color.main_blue_300),
+                    selectedTextColor = colorResource(R.color.main_blue_300),
+                    unselectedIconColor = colorResource(R.color.gray_700),
+                    unselectedTextColor = colorResource(R.color.gray_700)
+                ),
                 onClick = {
                     navController.navigate(navItem.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
