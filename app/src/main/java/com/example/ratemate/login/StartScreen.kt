@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.ratemate.R
-import com.example.ratemate.ui.theme.NotoSansKr
 
 @Composable
 fun StartScreen(navController: NavHostController) {
@@ -72,7 +71,6 @@ fun StartScreen(navController: NavHostController) {
         ) {
             Text(
                 text = "로그인",
-                fontFamily = NotoSansKr,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.white)
@@ -94,7 +92,6 @@ fun StartScreen(navController: NavHostController) {
         ) {
             Text(
                 text = "회원가입",
-                fontFamily = NotoSansKr,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.white)

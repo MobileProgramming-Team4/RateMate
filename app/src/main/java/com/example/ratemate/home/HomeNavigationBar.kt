@@ -27,13 +27,13 @@ import com.example.ratemate.survey.CreateSurveyScreen
 import com.example.ratemate.survey.SurveyResultScreen
 
 
-sealed class HomeNavRoutes (val route: String) {
+sealed class HomeNavRoutes(val route: String) {
     object Home : HomeNavRoutes("Home")
     object Question : HomeNavRoutes("Question")
     object MyPage : HomeNavRoutes("MyPage")
     object Shop : HomeNavRoutes("Shop")
     object Option : HomeNavRoutes("Option")
-    object AnswerSurvey: HomeNavRoutes("AnswerSurvey")
+    object AnswerSurvey : HomeNavRoutes("AnswerSurvey")
     object SurveyResult : HomeNavRoutes("SurveyResult")
 }
 
@@ -42,20 +42,20 @@ fun HomeNavigationHost(navController: NavHostController, startnavController: Nav
     NavHost(
         navController = navController,
         startDestination = HomeNavRoutes.Home.route
-    ){
-        composable(HomeNavRoutes.Home.route){
+    ) {
+        composable(HomeNavRoutes.Home.route) {
             SurveyListScreen(navController)
         }
-        composable(HomeNavRoutes.Question.route){
+        composable(HomeNavRoutes.Question.route) {
             CreateSurveyScreen(startnavController)
         }
-        composable(HomeNavRoutes.MyPage.route){
+        composable(HomeNavRoutes.MyPage.route) {
             MyPageScreen(startnavController)
         }
-        composable(HomeNavRoutes.Shop.route){
+        composable(HomeNavRoutes.Shop.route) {
             StoreScreen(navController)
         }
-        composable(HomeNavRoutes.Option.route){
+        composable(HomeNavRoutes.Option.route) {
             Option(startnavController)
         }
 
@@ -93,7 +93,9 @@ fun HomeNavigationHost(navController: NavHostController, startnavController: Nav
 @Composable
 fun HomeNavigationBar(navController: NavController) {
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = colorResource(R.color.gray_50)
+    ) {
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
 
