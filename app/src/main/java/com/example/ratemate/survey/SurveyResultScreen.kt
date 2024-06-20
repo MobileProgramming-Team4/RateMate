@@ -439,7 +439,7 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
                 }
             )
         }
-
+        
 
         //좋아요 눌렀을 때 동기화
         var changedLike by remember { mutableStateOf(false) }
