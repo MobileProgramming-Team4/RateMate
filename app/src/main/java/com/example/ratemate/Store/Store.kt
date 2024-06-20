@@ -76,6 +76,7 @@ fun StoreScreen(navController: NavController) {
     userViewModel.getUser(uid!!)
     val user by userViewModel.user.collectAsState(initial = null)
 
+
     Log.d("상점 화면", "유저 정보: $user")
 
     val storeItemViewModel: StoreItemViewModel = viewModel(
@@ -83,6 +84,20 @@ fun StoreScreen(navController: NavController) {
             StoreItemRepository()
         )
     )
+
+//    LaunchedEffect(key1 = Unit) {
+//        val item1 = StoreItem(UUID.randomUUID().toString(), "item1", 100, "profile1")
+//        val item2 = StoreItem(UUID.randomUUID().toString(), "item2", 200, "profile2")
+//        val item3 = StoreItem(UUID.randomUUID().toString(), "item3", 300, "profile3")
+//        val item4 = StoreItem(UUID.randomUUID().toString(), "item4", 400, "profile4")
+//        val item5 = StoreItem(UUID.randomUUID().toString(), "item5", 500, "profile5")
+//
+//        storeItemViewModel.addStoreItem(item1)
+//        storeItemViewModel.addStoreItem(item2)
+//        storeItemViewModel.addStoreItem(item3)
+//        storeItemViewModel.addStoreItem(item4)
+//        storeItemViewModel.addStoreItem(item5)
+//    }
 
     val goods by storeItemViewModel.storeItems.collectAsState(initial = emptyList())
 
@@ -115,6 +130,10 @@ fun StoreScreen(navController: NavController) {
             }
         }
         val context = LocalContext.current
+
+        LaunchedEffect(key1 = user) {
+            points = user!!.points
+        }
 
 
         var addTrans by rememberSaveable { mutableStateOf(false) }
