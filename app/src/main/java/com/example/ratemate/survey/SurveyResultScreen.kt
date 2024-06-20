@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -358,7 +359,7 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
             else{
                 isdeleted = true
                 deleteCommentId = commentId
-                Toast.makeText(context, "댓글 삭제", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "댓글이 삭제되었습니다", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -1249,14 +1250,7 @@ fun ShowComment(
 
 
 
-    Column(
-        modifier = Modifier
-        .clickable (
-            onClick = { showDialog = isMyComment },
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }
-    )
-    ) {
+    Column{
         // 댓글 내용
 
         Row(
@@ -1328,6 +1322,21 @@ fun ShowComment(
                 Text(
                     text = "$dislike"
                 )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // 작성자만 댓글 삭제 가능
+                if (isMyComment) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable {
+                                showDialog = true
+                            }
+                    )
+                }
 
             }
 
