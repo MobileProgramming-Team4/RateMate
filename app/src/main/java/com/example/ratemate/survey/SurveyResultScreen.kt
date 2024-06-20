@@ -1250,6 +1250,12 @@ fun ShowComment(
 
 
     Column(
+        modifier = Modifier
+        .clickable (
+            onClick = { showDialog = isMyComment },
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+    )
     ) {
         // 댓글 내용
 
@@ -1258,11 +1264,6 @@ fun ShowComment(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(top = 16.dp)
-                .clickable (
-                    onClick = { showDialog = isMyComment },
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                )
             ,
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.SpaceBetween
