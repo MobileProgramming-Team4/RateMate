@@ -195,6 +195,7 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
             viewModel(factory = UserViewModelFactory(UserRepository()))
 
         var newComment by remember { mutableStateOf("") }
+        var deleteCommentId by remember { mutableStateOf("") }
 
         val commentPoint = 5
 
@@ -347,6 +348,49 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
 
         }
 
+
+
+        var isdeleted by remember { mutableStateOf(false) }
+        val deleteComment = { commentId: String ->
+            if (deleteCommentId != ""){
+                Toast.makeText(context, "잠시 후 다시 시도해 주세요", Toast.LENGTH_SHORT).show()
+            }
+            else{
+                isdeleted = true
+                deleteCommentId = commentId
+                Toast.makeText(context, "댓글 삭제", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        if (isdeleted){
+            surveyV2ViewModel.getSurvey(Result.surveyId)
+            val isSurveyLoaded by surveyV2ViewModel.isSurveyLoaded.collectAsState()
+            if (isSurveyLoaded){
+                isdeleted = false
+                if (deleteCommentId != ""){
+                    val newCommentList = surveyResult!!.comments.toMutableList()
+                    newCommentList.remove(newCommentList.find { it.commentId == deleteCommentId })
+                    surveyV2ViewModel.updateSurvey(
+                        surveyResult!!.surveyId,
+                        mapOf("comments" to newCommentList)
+                    )
+                    numberOfComment = newCommentList.size
+                    surveyV2ViewModel.updateSurvey(
+                        surveyResult!!.surveyId,
+                        mapOf("numOfComments" to numberOfComment)
+                    )
+                    commentList = surveyResult!!.comments.toMutableList()
+
+                    if (sortComment == "인기순") {
+                        clickSortByLikes()
+                    } else {
+                        clickSortByDate()
+                    }
+                    deleteCommentId = ""
+                }
+            }
+        }
+
         val editSurvey = {
             /*Todo*/
             Toast.makeText(context, "설문 수정", Toast.LENGTH_SHORT).show()
@@ -395,19 +439,7 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
                 }
             )
         }
-
-
-        //좋아요, 싫어요 버튼 클릭시 실행될 함수
-        var showLog = false
-        val onClickLikeDislike = {
-            showLog = true
-
-        }
-        if (showLog) {
-            showLog = false
-            Log.d("댓글", "리스트 : $commentList")
-        }
-
+        
 
         //좋아요 눌렀을 때 동기화
         var changedLike by remember { mutableStateOf(false) }
@@ -513,7 +545,7 @@ fun ShowSurveyResultScreen(user: User, Result: SurveyV2, navController: NavContr
                 val modifier5 = Modifier.weight(5f)
                 ShowComments(
                     user, comments = commentList, surveyResult = surveyResult!!,
-                    modifier = modifier5
+                    modifier = modifier5, deleteComment = deleteComment
                 )
 
                 //댓글 입력창
@@ -998,7 +1030,8 @@ fun ShowCounts(
 
 
 @Composable
-fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier) {
+fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, modifier: Modifier,
+                 deleteComment: (String) -> Unit){
     var sendInfo by remember { mutableStateOf(true) }
     val changedCommentList by rememberSaveable { mutableStateOf(mutableListOf<changedComment>()) }
     Log.d("댓글2", "처음 리스트 : $changedCommentList")
@@ -1021,11 +1054,14 @@ fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, mo
                     comment.dislike.usersWhoDisliked.find { it == user.userId } != null)
             }
 
+            var isMyComment by rememberSaveable { mutableStateOf(user.email == comment.userId) }
+
             LaunchedEffect(comments) {
                 like = comment.like.count
                 dislike = comment.dislike.count
                 isLiked = comment.like.usersWhoLiked.find { it == user.userId } != null
                 isDisliked = comment.dislike.usersWhoDisliked.find { it == user.userId } != null
+                isMyComment = user.email == comment.userId
             }
 
             LaunchedEffect(key1 = isLiked, key2 = isDisliked) {
@@ -1170,7 +1206,9 @@ fun ShowComments(user: User, comments: List<Comment>, surveyResult: SurveyV2, mo
                 isLiked = isLiked,
                 isDisliked = isDisliked,
                 clickLike = clickLike,
-                clickDislike = clickDislike
+                clickDislike = clickDislike,
+                deleteComment = deleteComment,
+                isMyComment = isMyComment
             )
 
         }
@@ -1193,7 +1231,9 @@ fun ShowComment(
     isLiked: Boolean,
     isDisliked: Boolean,
     clickLike: () -> Unit,
-    clickDislike: () -> Unit
+    clickDislike: () -> Unit,
+    deleteComment: (String) -> Unit,
+    isMyComment: Boolean
 ) {
 
     // 날짜 형식 변환
@@ -1203,14 +1243,28 @@ fun ShowComment(
         originalFormat.parse(comment.createdDate) ?: Date()
     }
     val formattedDate = targetFormat.format(date)
+    val context = LocalContext.current
 
-    Column {
+    var showDialog by remember { mutableStateOf(false) }
+
+
+
+    Column(
+        modifier = Modifier
+        .clickable (
+            onClick = { showDialog = isMyComment },
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+    )
+    ) {
         // 댓글 내용
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(top = 16.dp),
+                .padding(top = 16.dp)
+            ,
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1274,6 +1328,7 @@ fun ShowComment(
                 Text(
                     text = "$dislike"
                 )
+
             }
 
         }
@@ -1284,6 +1339,31 @@ fun ShowComment(
                 .padding(start = 54.dp, end = 16.dp)
                 .padding(bottom = 16.dp, top = 8.dp)
         )
+
+        if (showDialog){
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("댓글 삭제") },
+                text = { Text("댓글을 삭제하시겠습니까?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            deleteComment(comment.commentId)
+                        }
+                    ) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { showDialog = false }
+                    ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
         Divider()
     }
