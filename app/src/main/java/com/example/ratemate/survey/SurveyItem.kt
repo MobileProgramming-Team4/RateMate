@@ -41,7 +41,7 @@ fun SurveyItem(survey: SurveyV2, navController: NavController, destination: Stri
             )
 
             Text(
-                text = "작성자: ${survey.creatorId}\n좋아요: ${survey.likes.count}, 답변 수: ${survey.response.size}",
+                text = "작성자: ${survey.creatorId}\n답변 수: ${survey.response.size}, 좋아요: ${survey.likes.count}, 댓글 수: ${survey.comments.size}",
                 fontFamily = NotoSansKr,
                 fontSize = 12.sp,
                 color = colorResource(R.color.gray_700)
