@@ -1,8 +1,8 @@
 package com.example.ratemate.data
 
 data class Like(
-    val count: Int = 0,
-    val usersWhoLiked: List<String> = listOf()
+    var count: Int = 0,
+    var usersWhoLiked: MutableList<String> = mutableListOf()
 ) {
-    constructor() : this(0, listOf())
+    constructor() : this(0, mutableListOf())
 }

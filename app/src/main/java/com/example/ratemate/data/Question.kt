@@ -1,10 +1,10 @@
 package com.example.ratemate.data
 
 data class Question(
-    val questionId: String = "",
-    val content: String = "",
-    val options: List<String> = listOf(),
-    val order: Int = 0
+    var questionId: String = "",
+    var content: String = "",
+    var options: MutableList<Option> = mutableListOf(),
+    var order: Int = 0
 ) {
-    constructor() : this("", "", listOf(), 0)
+    constructor() : this("", "", mutableListOf(), 0)
 }

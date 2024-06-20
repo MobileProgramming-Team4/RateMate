@@ -7,17 +7,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ratemate.home.HomeScreen
+import com.example.ratemate.survey.SurveyResultScreen
+import com.example.ratemate.login.LoginScreen
 import com.example.ratemate.login.RegisterScreen
 import com.example.ratemate.login.StartScreen
-import com.example.ratemate.home.SurveyResultScreen
-import com.example.ratemate.login.LoginScreen
+import com.example.ratemate.survey.AnswerSurveyScreen
+import com.example.ratemate.survey.CreateSurveyScreen
 
 sealed class Route(val route: String){
     object Start: Route("Start")
     object Login: Route("Login")
     object Register: Route("Register")
     object Home: Route("Home")
-    object SurveyResult: Route("SurveyResult")
+    object SurveyList: Route("SurveyList")
+    object CreateSurvey : Route("CreateSurvey")
+    object Result : Route("Result")
+    object AnswerSurvey: Route("AnswerSurvey")
+
 }
 
 @Composable
@@ -39,7 +45,6 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
             LoginScreen(navController, mail, pw)
         }
 
-
         composable("Register") {
             RegisterScreen(navController)
         }
@@ -47,8 +52,33 @@ fun NavGraph(navController: NavHostController, startDestination: Route) {
             HomeScreen(navController)
         }
 
-        composable("SurveyResult") {
-            SurveyResultScreen(navController)
+        composable(Route.CreateSurvey.route) {
+            CreateSurveyScreen(navController)
         }
+
+        composable(
+            Route.Result.route + "/{SurveyID}",
+            arguments = listOf(
+                navArgument(name = "SurveyID") {
+                    type = NavType.StringType
+                }
+            )) {
+            SurveyResultScreen(
+                navController = navController,
+                SurveyID = it.arguments?.getString("SurveyID")
+            )
+        }
+
+        composable(
+            route = "AnswerSurvey?surveyId={surveyId}",
+            arguments = listOf(
+                navArgument("surveyId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val surveyId = backStackEntry.arguments?.getString("surveyId")
+            AnswerSurveyScreen(navController = navController, surveyId = surveyId)
+        }
+
+
     }
 }

@@ -1,10 +1,15 @@
 package com.example.ratemate.data
 
+import androidx.compose.ui.graphics.painter.Painter
+
 data class Comment(
-    val commentId: String = "",
-    val userId: String = "",
-    val text: String = "",
-    val createdDate: String = ""
+    var commentId: String = "",
+    var userId: String = "",
+    var text: String = "",
+    var createdDate: String = "",
+    var profileImage: String = "",
+    var like: Like = Like(),
+    var dislike : Dislike = Dislike()
 ) {
-    constructor() : this("", "", "", "")
+    constructor() : this("", "", "", "", "", Like(), Dislike())
 }
